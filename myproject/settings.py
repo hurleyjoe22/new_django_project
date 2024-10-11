@@ -23,9 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-2pe@@=e$xfcq!bhw5@keos6ft=2y)zch#0r1c#t(a4^kk#h49e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True  # Set to False in production
 
-ALLOWED_HOSTS = ['*']
+# Allow all hosts during development, restrict in production
+ALLOWED_HOSTS = ['*']  # Change this to your domain in production
 
 
 # Application definition
@@ -117,12 +118,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']  # This is added for development use
+
+
+# Login/logout redirect settings
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'
+
+
+# Security settings (for production)
+SECURE_SSL_REDIRECT = False  # Redirect all HTTP to HTTPS in production
+CSRF_COOKIE_SECURE = True  # Ensure CSRF cookie is only sent over HTTPS
+SESSION_COOKIE_SECURE = True  # Ensure session cookie is only sent over HTTPS
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
