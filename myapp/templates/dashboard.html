@@ -3,10 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Cooroibah Greens Farm Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F8F9FA; /* Light Gray */
+            color: #212529; /* Dark Gray */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background-color: #32CD32; /* Lime Green */
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+        .button-container button {
+            background-color: #32CD32; /* Lime Green */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button-container .history-button {
+            background-color: lightblue; /* Light Blue */
+        }
+        .button-container .edit-button {
+            background-color: #FF6347; /* Tomato Red */
+        }
+        .button-container .manual-report-button {
+            background-color: #4682B4; /* Steel Blue */
+        }
+        .button-container .dashboard2-button {
+            background-color: #FFD700; /* Gold */
+        }
+        .content {
+            margin-top: 120px; /* Adjusted to fit the header */
+            width: 90%;
+            max-width: 1200px;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            padding-bottom: 60px; /* Ensure content doesn't overlap footer */
+        }
+        .tank-container, .data-display, .relay-indicator-container, .last-updated-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        .tank {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+            border: 3px solid #000; /* Black */
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1; /* Behind the dotted line */
+            background-color: #32CD32; /* Default color */
+        }
+        .line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 90%;
+            border-top: 5px dotted #000; /* Black */
+            z-index: 2; /* In front of the water */
+        }
+        .percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 35px;
+            font-weight: bold;
+            color: #212529; /* Dark Gray */
+            z-index: 3; /* In front of everything */
+        }
+        .data-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .data-display p {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .last-updated-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .timestamp, .day-night-label, .last-sms-message {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 5px 0;
+        }
+        .day-night-label.day {
+            color: rgba(255, 255, 0, 0.8); /* 80% yellow */
+        }
+        .day-night-label.night {
+            color: rgba(0, 0, 128, 0.8); /* 80% navy */
+        }
+        .relay-indicators {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .relay-indicator {
+            text-align: center;
+        }
+        .indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #000; /* Initially off (black) */
+            margin-bottom: 5px;
+        }
+        footer {
+            background-color: #32CD32; /* Lime Green */
+            color: white;
+            width: 100%;
+            padding: 10px 0;
+            text-align: center;
+            position: relative; /* Changed to relative */
+            z-index: 4; /* Ensure footer is above all other elements */
+        }
+        .water.normal {
+            background-color: #32CD32; /* Lime Green */
+        }
+        .water.warning {
+            background-color: #FFFF00; /* Yellow */
+        }
+        .water.alert {
+            background-color: #FFA500; /* Orange */
+        }
+        .water.critical {
+            background-color: #FF0000; /* Red */
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Dashboard</h1>
-    <p>You are logged in!</p>
+    <header>
+        <h1>Cooroibah Greens Farm Dashboard</h1>
+        <div class="button-container">
+            <button class="history-button" onclick="location.href='/graphs'">History</button>
+            <button class="edit-button" onclick="location.href='/edit'">Edit</button>
+            <button class="manual-report-button" onclick="sendManualReport()">Manual Daily Report</button>
+            <button class="dashboard2-button" onclick="location.href='/dashboard2'">Dashboard 2</button>
+        </div>
+    </header>
+    <div class="content">
+        <div class="last-updated-container">
+            <p id="lastUpdatedElement" class="timestamp">Last Updated: </p>
+            <p id="dayNightElement" class="day-night-label">Day</p>
+            <p id="lastSmsMessage" class="last-sms-message">Last SMS Sent: </p>
+        </div>
+        <div class="data-display">
+            <p id="temperature">Temperature: </p>
+            <p id="humidity">Humidity: </p>
+        </div>
+        <div class="relay-indicator-container">
+            <h2>Relay Indicators</h2>
+            <div class="relay-indicators">
+                <div class="relay-indicator">
+                    <div id="relay1Indicator" class="indicator"></div>
+                    <span>Pump 1</span>
+                </div>
+                <div class="relay-indicator">
+                    <div id="relay2Indicator" class="indicator"></div>
+                    <span>Pump 2</span>
+                </div>
+                <div class="relay-indicator">
+                    <div id="relay3Indicator" class="indicator"></div>
+                    <span>Aerator</span>
+                </div>
+                <div class="relay-indicator">
+                    <div id="relay4Indicator" class="indicator"></div>
+                    <span>Recirculation</span>
+                </div>
+            </div>
+        </div>
+        <div class="tank-container" id="ama2TankContainer">
+            <h2>5000L Water Tank</h2>
+            <div class="tank" id="ama2Tank">
+                <div class="line"></div>
+                <div class="water normal" id="ama2Water"></div>
+                <div class="percentage" id="ama2Percentage">0%</div>
+            </div>
+            <p id="ama2">Water Level: </p>
+        </div>
+        <div class="tank-container" id="ama3TankContainer">
+            <h2>1000L Water Tank</h2>
+            <div class="tank" id="ama3Tank">
+                <div class="line"></div>
+                <div class="water normal" id="ama3Water"></div>
+                <div class="percentage" id="ama3Percentage">0%</div>
+            </div>
+            <p id="ama3">Water Level: </p>
+        </div>
+        <div class="tank-container" id="ama4TankContainer">
+            <h2>1000L Water Tank</h2>
+            <div class="tank" id="ama4Tank">
+                <div class="line"></div>
+                <div class="water normal" id="ama4Water"></div>
+                <div class="percentage" id="ama4Percentage">0%</div>
+            </div>
+            <p id="ama4">Water Level: </p>
+        </div>
+    </div>
+    <footer>
+        <p>Â© 2024 Cooroibah Greens Farm</p>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        var tankHeights = {
+            ama2: 1210,
+            ama3: 970,
+            ama4: 970
+        };
+
+        function displayLastUpdate(timestamp) {
+            console.log('Updating last update timestamp:', timestamp);
+            var lastUpdate = new Date(timestamp);
+            var formattedLastUpdate = lastUpdate.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+            $('#lastUpdatedElement').text('Last Updated: ' + formattedLastUpdate);
+        }
+
+        function displayDayNight(dayNight) {
+            var dayNightText = dayNight === 'Day' ? 'Day' : 'Night';
+            var dayNightClass = dayNight === 'Day' ? 'day' : 'night';
+            $('#dayNightElement').text(dayNightText).removeClass('day night').addClass(dayNightClass);
+        }
+
+        function displayLastSmsMessage(message) {
+            $('#lastSmsMessage').text('Last SMS Sent: ' + message);
+        }
+
+        function updateData() {
+            console.log('Fetching data...');
+            $.get('http://192.168.1.19:5001/updateAll', function (data) {
+                console.log('Data received:', data);
+
+                if (data.error) {
+                    console.error('Error from server:', data.error);
+                    return;
+                }
+
+                // Update last update timestamp
+                displayLastUpdate(data.timestamp);
+                // Update day/night indicator
+                displayDayNight(data.day_night);
+                // Update last SMS message
+                displayLastSmsMessage(data.last_sms_message);
+
+                // Format temperature and humidity to one decimal place if available
+                var formattedTemperature = data.temperature !== 'N/A' ? parseFloat(data.temperature).toFixed(1) : 'N/A';
+                var formattedHumidity = data.humidity !== 'N/A' ? parseFloat(data.humidity).toFixed(1) : 'N/A';
+
+                console.log('Formatted Temperature:', formattedTemperature);
+                console.log('Formatted Humidity:', formattedHumidity);
+
+                // Update temperature and humidity
+                $('#temperature').text('Temperature: ' + formattedTemperature + 'Â°C');
+                $('#humidity').text('Humidity: ' + formattedHumidity + '%');
+
+                // Update water levels
+                $('#ama2').text('AMA2 Water Level: ' + data.mode_ama2_1 + ' mm');
+                $('#ama3').text('AMA3 Water Level: ' + data.mode_ama3_1 + ' mm');
+                $('#ama4').text('AMA4 Water Level: ' + data.mode_ama4_1 + ' mm');
+
+                // Update water fill levels and state
+                updateWaterLevel('ama2', 'ama2Percentage', 'ama2Water', data.mode_ama2_1);
+                updateWaterLevel('ama3', 'ama3Percentage', 'ama3Water', data.mode_ama3_1);
+                updateWaterLevel('ama4', 'ama4Percentage', 'ama4Water', data.mode_ama4_1);
+
+                // Update relay indicators
+                updateRelayIndicators(data.relay_states);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error('AJAX request failed:', textStatus, errorThrown);
+            });
+        }
+
+        function updateWaterLevel(tankId, percentageId, waterId, waterLevel) {
+            if (!tankHeights[tankId] || isNaN(waterLevel)) {
+                console.error(`Invalid data for ${tankId}: waterLevel=${waterLevel}, tankHeight=${tankHeights[tankId]}`);
+                $('#' + percentageId).text('NaN%');
+                return;
+            }
+            var percentage = 100 - (waterLevel / tankHeights[tankId]) * 100;
+            if (isNaN(percentage)) {
+                console.error(`Calculation error for ${tankId}: waterLevel=${waterLevel}, tankHeight=${tankHeights[tankId]}`);
+                $('#' + percentageId).text('NaN%');
+            } else {
+                $('#' + percentageId).text(percentage.toFixed(1) + '%');
+                updateWaterFill(tankId, waterId, percentage);
+                console.log('Tank ID:', tankId);
+                console.log('Water level:', waterLevel);
+                console.log('Tank Heights:', tankHeights);
+                console.log('Formatted water fill %:', percentage);
+            }
+        }
+
+        function updateWaterFill(tankId, waterId, percentage) {
+            var invertedPercentage = percentage;
+            var water = $('#' + waterId);
+            water.css('height', invertedPercentage + '%');
+
+            // Determine the state and apply the corresponding class
+            if (percentage >= 30) {
+                water.removeClass().addClass('water normal');
+            } else if (percentage >= 20) {
+                water.removeClass().addClass('water warning');
+            } else if (percentage >= 10) {
+                water.removeClass().addClass('water alert');
+            } else {
+                water.removeClass().addClass('water critical');
+                
+            }
+        }
+
+        
+        function updateRelayIndicators(relayStates) {
+            for (var relayId in relayStates) {
+                var action = relayStates[relayId] ? 'on' : 'off';
+                var indicator = $(`#relay${relayId.slice(-1)}Indicator`);
+                if (action === 'on') {
+                    indicator.css('background-color', '#000'); /* Green */
+                } else {
+                    indicator.css('background-color', '#32CD32'); /* Black */
+                }
+            }
+        }
+
+        function sendManualReport() {
+    // Disable the button
+    const reportButton = $('.manual-report-button');
+    reportButton.prop('disabled', true);
+    reportButton.css('background-color', '#A9A9A9'); // Change color to grey
+
+    // Send the report
+    $.ajax({
+        url: '/send-report',
+        type: 'POST',
+        success: function(response) {
+            alert(response.message);
+        },
+        error: function(xhr, status, error) {
+            alert("Failed to send report: " + xhr.responseJSON.message);
+        }
+    });
+
+    // Re-enable the button after 1 minute (60000 milliseconds)
+    setTimeout(function() {
+        reportButton.prop('disabled', false);
+        reportButton.css('background-color', '#4682B4'); // Change color back to Steel Blue
+    }, 60000);
+}
+
+
+        $(document).ready(function() {
+            updateData();
+            setInterval(updateData, 1000);  // Update all data every 1 second
+        });
+    </script>
 </body>
 </html>
