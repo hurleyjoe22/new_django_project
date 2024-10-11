@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 
 # Login view
 def login_view(request):
@@ -16,7 +16,7 @@ def login_view(request):
                 return redirect('dashboard')  # Redirect to the dashboard
     else:
         form = AuthenticationForm()
-    return render(request, 'home.html', {'form': form})  # Render the login form
+    return render(request, 'login.html', {'form': form})  # Render the login form
 
 # Dashboard view
 @login_required
