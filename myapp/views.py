@@ -5,6 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from .models import SensorData  # Import the model
 
 # Login view
 def login_view(request):
@@ -24,7 +25,19 @@ def login_view(request):
 # Dashboard view
 @login_required
 def dashboard(request):
-    return render(request, 'dashboard.html')  # Render the dashboard page
+    # Get the latest sensor data from the database
+    latest_data = SensorData.objects.order_by('-timestamp').first()
+
+    context = {
+        'timestamp': latest_data.timestamp if latest_data else 'No data',
+        'ama2_distance': latest_data.ama2_distance if latest_data else 'No data',
+        'ama3_distance': latest_data.ama3_distance if latest_data else 'No data',
+        'ama4_distance': latest_data.ama4_distance if latest_data else 'No data',
+        'temperature': latest_data.temperature if latest_data else 'No data',
+        'humidity': latest_data.humidity if latest_data else 'No data'
+    }
+
+    return render(request, 'dashboard.html', context)  # Render the dashboard page with sensor data
 
 # API view to handle data upload from Raspberry Pi
 @csrf_exempt  # Disable CSRF for API requests
@@ -39,13 +52,15 @@ def upload_sensor_data(request):
             humidity = data.get('humidity')
             timestamp = data.get('timestamp')
 
-            # Save the data to the database (You should have a model for this)
-            # Example model save logic:
-            # SensorData.objects.create(
-            #    ama2_distance=ama2_distance, ama3_distance=ama3_distance,
-            #    ama4_distance=ama4_distance, temperature=temperature,
-            #    humidity=humidity, timestamp=timestamp
-            # )
+            # Save the data to the database
+            SensorData.objects.create(
+                ama2_distance=ama2_distance, 
+                ama3_distance=ama3_distance,
+                ama4_distance=ama4_distance, 
+                temperature=temperature,
+                humidity=humidity, 
+                timestamp=timestamp
+            )
 
             return JsonResponse({'message': 'Data received successfully'}, status=200)
         except json.JSONDecodeError:

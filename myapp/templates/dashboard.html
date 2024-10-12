@@ -38,7 +38,7 @@
         <h1>Dashboard</h1>
         <div class="data-field">
             <span class="data-label">Last Updated:</span>
-            <span id="last-updated">{{ last_updated }}</span>
+            <span id="last-updated">{{ timestamp }}</span>
         </div>
         <div class="data-field">
             <span class="data-label">Temperature:</span>
@@ -50,15 +50,15 @@
         </div>
         <div class="data-field">
             <span class="data-label">AMA2 Water Level:</span>
-            <span id="ama2">{{ ama2 }} mm</span>
+            <span id="ama2">{{ ama2_distance }} mm</span>
         </div>
         <div class="data-field">
             <span class="data-label">AMA3 Water Level:</span>
-            <span id="ama3">{{ ama3 }} mm</span>
+            <span id="ama3">{{ ama3_distance }} mm</span>
         </div>
         <div class="data-field">
             <span class="data-label">AMA4 Water Level:</span>
-            <span id="ama4">{{ ama4 }} mm</span>
+            <span id="ama4">{{ ama4_distance }} mm</span>
         </div>
     </div>
 </body>
