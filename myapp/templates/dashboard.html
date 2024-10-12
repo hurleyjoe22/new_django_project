@@ -161,6 +161,13 @@
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
                 displayLastUpdate(data.timestamp);
+
+
+                // Format temperature and humidity to two decimal places
+                var formattedTemperature = parseFloat(data.temperature).toFixed(2);
+                var formattedHumidity = parseFloat(data.humidity).toFixed(2);
+        
+
                 $('#temperature').text('Temperature: ' + data.temperature + ' °C');
                 $('#humidity').text('Humidity: ' + data.humidity + ' %');
                 $('#ama2').text('AMA2 Water Level: ' + data.ama2_distance + ' mm');
