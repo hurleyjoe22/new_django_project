@@ -163,9 +163,9 @@
                 displayLastUpdate(data.timestamp);
 
 
-                // Format temperature and humidity to two decimal places
-                var formattedTemperature = parseFloat(data.temperature).toFixed(2);
-                var formattedHumidity = parseFloat(data.humidity).toFixed(2);
+                // Ensure temperature and humidity are formatted to two decimal places
+                var formattedTemperature = Number(parseFloat(data.temperature).toFixed(2));
+                var formattedHumidity = Number(parseFloat(data.humidity).toFixed(2));
         
 
                 $('#temperature').text('Temperature: ' + data.temperature + ' °C');
