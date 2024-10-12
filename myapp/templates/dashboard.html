@@ -3,69 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Cooroibah Greens Farm Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Roboto', sans-serif;
+            background-color: #F8F9FA; /* Light Gray */
+            color: #212529; /* Dark Gray */
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
         }
-        .container {
-            background-color: #fff;
+        header {
+            background-color: #32CD32; /* Lime Green */
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .content {
+            margin-top: 120px; /* Adjusted to fit the header */
+            width: 90%;
+            max-width: 1200px;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            padding-bottom: 60px; /* Ensure content doesn't overlap footer */
+        }
+        .tank-container, .data-display, .relay-indicator-container, .last-updated-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
             text-align: center;
         }
-        .data-field {
-            margin-bottom: 15px;
-            font-size: 18px;
+        .tank {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+            border: 3px solid #000; /* Black */
+            border-radius: 8px;
+            overflow: hidden;
         }
-        .data-label {
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1; /* Behind the dotted line */
+            background-color: #32CD32; /* Default color */
+        }
+        .line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 90%;
+            border-top: 5px dotted #000; /* Black */
+            z-index: 2; /* In front of the water */
+        }
+        .percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 35px;
+            font-weight: bold;
+            color: #212529; /* Dark Gray */
+            z-index: 3; /* In front of everything */
+        }
+        .data-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .data-display p {
+            margin: 0;
+            font-size: 24px;
             font-weight: bold;
         }
+        footer {
+            background-color: #32CD32; /* Lime Green */
+            color: white;
+            width: 100%;
+            padding: 10px 0;
+            text-align: center;
+            position: relative; /* Changed to relative */
+            z-index: 4; /* Ensure footer is above all other elements */
+        }
+        .water.normal {
+            background-color: #32CD32; /* Lime Green */
+        }
+        .water.warning {
+            background-color: #FFFF00; /* Yellow */
+        }
+        .water.alert {
+            background-color: #FFA500; /* Orange */
+        }
+        .water.critical {
+            background-color: #FF0000; /* Red */
+        }
     </style>
-    <script>
-        // Refresh the page every 10 seconds
-        setInterval(function() {
-            window.location.reload();
-        }, 10000); // 10000 milliseconds = 10 seconds
-    </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Dashboard</h1>
-        <div class="data-field">
-            <span class="data-label">Last Updated:</span>
-            <span id="last-updated">{{ timestamp }}</span>
+    <header>
+        <h1>Cooroibah Greens Farm Dashboard</h1>
+    </header>
+    <div class="content">
+        <div class="last-updated-container">
+            <p id="lastUpdatedElement" class="timestamp">Last Updated: </p>
         </div>
-        <div class="data-field">
-            <span class="data-label">Temperature:</span>
-            <span id="temperature">{{ temperature }} &#8451;</span>
+        <div class="data-display">
+            <p id="temperature">Temperature: </p>
+            <p id="humidity">Humidity: </p>
         </div>
-        <div class="data-field">
-            <span class="data-label">Humidity:</span>
-            <span id="humidity">{{ humidity }} %</span>
+        <div class="relay-indicator-container">
+            <h2>Relay Indicators</h2>
+            <div class="relay-indicators">
+                <div class="relay-indicator">
+                    <div id="relay1Indicator" class="indicator"></div>
+                    <span>Pump 1</span>
+                </div>
+                <div class="relay-indicator">
+                    <div id="relay2Indicator" class="indicator"></div>
+                    <span>Pump 2</span>
+                </div>
+                <div class="relay-indicator">
+                    <div id="relay3Indicator" class="indicator"></div>
+                    <span>Aerator</span>
+                </div>
+                <div class="relay-indicator">
+                    <div id="relay4Indicator" class="indicator"></div>
+                    <span>Recirculation</span>
+                </div>
+            </div>
         </div>
-        <div class="data-field">
-            <span class="data-label">AMA2 Water Level:</span>
-            <span id="ama2">{{ ama2_distance }} mm</span>
+        <div class="tank-container" id="ama2TankContainer">
+            <h2>5000L Water Tank</h2>
+            <div class="tank" id="ama2Tank">
+                <div class="line"></div>
+                <div class="water normal" id="ama2Water"></div>
+                <div class="percentage" id="ama2Percentage">0%</div>
+            </div>
+            <p id="ama2">Water Level: </p>
         </div>
-        <div class="data-field">
-            <span class="data-label">AMA3 Water Level:</span>
-            <span id="ama3">{{ ama3_distance }} mm</span>
+        <div class="tank-container" id="ama3TankContainer">
+            <h2>1000L Water Tank</h2>
+            <div class="tank" id="ama3Tank">
+                <div class="line"></div>
+                <div class="water normal" id="ama3Water"></div>
+                <div class="percentage" id="ama3Percentage">0%</div>
+            </div>
+            <p id="ama3">Water Level: </p>
         </div>
-        <div class="data-field">
-            <span class="data-label">AMA4 Water Level:</span>
-            <span id="ama4">{{ ama4_distance }} mm</span>
+        <div class="tank-container" id="ama4TankContainer">
+            <h2>1000L Water Tank</h2>
+            <div class="tank" id="ama4Tank">
+                <div class="line"></div>
+                <div class="water normal" id="ama4Water"></div>
+                <div class="percentage" id="ama4Percentage">0%</div>
+            </div>
+            <p id="ama4">Water Level: </p>
         </div>
     </div>
+    <footer>
+        <p>© 2024 Cooroibah Greens Farm</p>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        function updateData() {
+            $.get('/api/latest-sensor-data/', function (data) {
+                // Update the fields with data from the API response
+                $('#lastUpdatedElement').text('Last Updated: ' + data.timestamp);
+                $('#temperature').text('Temperature: ' + data.temperature + '°C');
+                $('#humidity').text('Humidity: ' + data.humidity + '%');
+                $('#ama2').text('AMA2 Water Level: ' + data.ama2_distance + ' mm');
+                $('#ama3').text('AMA3 Water Level: ' + data.ama3_distance + ' mm');
+                $('#ama4').text('AMA4 Water Level: ' + data.ama4_distance + ' mm');
+            });
+        }
+
+        $(document).ready(function() {
+            updateData();
+            setInterval(updateData, 10000);  // Update data every 10 seconds
+        });
+    </script>
 </body>
 </html>
