@@ -25,19 +25,25 @@ def login_view(request):
 # Dashboard view
 @login_required
 def dashboard(request):
-    # Get the latest sensor data from the database
+    # Just render the dashboard, data will be populated via API
+    return render(request, 'dashboard.html')
+
+# API view to handle real-time sensor data request
+def latest_sensor_data(request):
     latest_data = SensorData.objects.order_by('-timestamp').first()
 
-    context = {
-        'timestamp': latest_data.timestamp if latest_data else 'No data',
-        'ama2_distance': latest_data.ama2_distance if latest_data else 'No data',
-        'ama3_distance': latest_data.ama3_distance if latest_data else 'No data',
-        'ama4_distance': latest_data.ama4_distance if latest_data else 'No data',
-        'temperature': latest_data.temperature if latest_data else 'No data',
-        'humidity': latest_data.humidity if latest_data else 'No data'
-    }
-
-    return render(request, 'dashboard.html', context)  # Render the dashboard page with sensor data
+    if latest_data:
+        data = {
+            'timestamp': latest_data.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'ama2_distance': latest_data.ama2_distance,
+            'ama3_distance': latest_data.ama3_distance,
+            'ama4_distance': latest_data.ama4_distance,
+            'temperature': latest_data.temperature,
+            'humidity': latest_data.humidity,
+        }
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'error': 'No data available'}, status=404)
 
 # API view to handle data upload from Raspberry Pi
 @csrf_exempt  # Disable CSRF for API requests
