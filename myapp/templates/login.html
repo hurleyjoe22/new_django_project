@@ -4,16 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .login-container {
+            width: 300px;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 10px 5px rgba(0, 255, 0, 0.5);
+            text-align: center;
+            background-color: white;
+            border-radius: 15px; /* Rounded corners */
+        }
+
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 80%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 10px; /* Rounded corners for fields */
+            background-color: rgba(128, 128, 128, 0.5);
+        }
+
+        .submit-btn {
+            background-color: #00ff00;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 10px; /* Rounded corners for button */
+        }
+    </style>
 </head>
 <body>
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
-    {% if form.errors %}
-        <p style="color: red;">{{ form.errors }}</p>
-    {% endif %}
+    <div class="login-container">
+        <img src="{% static 'your_logo.png' %}" alt="Logo" class="logo">
+        <h2>Cooroibah Greens Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            <label for="username">Username</label>
+            <input type="text" name="username" placeholder="username" class="input-field">
+
+            <label for="password">Password</label>
+            <input type="password" name="password" placeholder="password" class="input-field">
+
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+
+        {% if form.errors %}
+            <p style="color: red;">{{ form.errors }}</p>
+        {% endif %}
+    </div>
 </body>
 </html>
