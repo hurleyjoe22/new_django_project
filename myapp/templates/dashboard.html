@@ -71,7 +71,7 @@
             font-size: 35px;
             font-weight: bold;
             color: #212529;
-            z-index: 10; /* Higher z-index to ensure it's in front */
+            z-index: 10;
         }
         .data-display {
             display: flex;
@@ -105,6 +105,21 @@
             margin: 10px 0;
             font-size: 24px;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .indicator-light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+        .off {
+            background-color: darkgrey;
+        }
+        .on {
+            background-color: green;
         }
     </style>
 </head>
@@ -113,6 +128,27 @@
         <h1>Cooroibah Greens Farm Dashboard</h1>
     </header>
     <div class="content">
+        <!-- Last Updated Container -->
+        <div class="last-updated-container">
+            <p id="lastUpdatedElement" class="timestamp">Last Updated: </p>
+        </div>
+
+        <!-- Temperature and Humidity Display -->
+        <div class="data-display">
+            <p id="temperature">Temperature: </p>
+            <p id="humidity">Humidity: </p>
+        </div>
+
+        <!-- Relay Status Container -->
+        <div class="relay-indicator-container">
+            <h2>Relay Status</h2>
+            <div id="relay1Status">Relay 1 <span class="indicator-light off" id="relay1Indicator"></span></div>
+            <div id="relay2Status">Relay 2 <span class="indicator-light off" id="relay2Indicator"></span></div>
+            <div id="relay3Status">Relay 3 <span class="indicator-light off" id="relay3Indicator"></span></div>
+            <div id="relay4Status">Relay 4 <span class="indicator-light off" id="relay4Indicator"></span></div>
+        </div>
+
+        <!-- 5000L Water Tank -->
         <div class="tank-container" id="ama2TankContainer">
             <h2>5000L Water Tank</h2>
             <div class="tank" id="ama2Tank">
@@ -121,6 +157,8 @@
             </div>
             <p id="ama2">Water Level: </p>
         </div>
+
+        <!-- 1000L Water Tank (AMA3) -->
         <div class="tank-container" id="ama3TankContainer">
             <h2>1000L Water Tank</h2>
             <div class="tank" id="ama3Tank">
@@ -129,6 +167,8 @@
             </div>
             <p id="ama3">Water Level: </p>
         </div>
+
+        <!-- 1000L Water Tank (AMA4) -->
         <div class="tank-container" id="ama4TankContainer">
             <h2>1000L Water Tank</h2>
             <div class="tank" id="ama4Tank">
@@ -136,23 +176,6 @@
                 <div class="percentage" id="ama4Percentage">0%</div>
             </div>
             <p id="ama4">Water Level: </p>
-        </div>
-
-        <!-- Relay Status Container -->
-        <div class="relay-indicator-container">
-            <h2>Relay Status</h2>
-            <div id="relay1Status">Relay 1: Off</div>
-            <div id="relay2Status">Relay 2: Off</div>
-            <div id="relay3Status">Relay 3: Off</div>
-            <div id="relay4Status">Relay 4: Off</div>
-        </div>
-
-        <div class="last-updated-container">
-            <p id="lastUpdatedElement" class="timestamp">Last Updated: </p>
-        </div>
-        <div class="data-display">
-            <p id="temperature">Temperature: </p>
-            <p id="humidity">Humidity: </p>
         </div>
     </div>
     <footer>
@@ -181,8 +204,9 @@
         }
 
         function updateRelayStatus(relayId, isOn) {
-            var statusText = isOn ? 'On' : 'Off';
-            $('#relay' + relayId + 'Status').text('Relay ' + relayId + ': ' + statusText);
+            var statusText = isOn ? 'on' : 'off';
+            var indicatorClass = isOn ? 'on' : 'off';
+            $('#relay' + relayId + 'Indicator').removeClass('on off').addClass(indicatorClass);
         }
 
         function updateData() {
