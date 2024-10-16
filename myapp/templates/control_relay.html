@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relay Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .relay-control {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .buttons {
+            margin-bottom: 10px;
+        }
+
+        /* Back to Dashboard button styling */
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #32CD32;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .back-button:hover {
+            background-color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <!-- Back to Dashboard Button -->
+    <a href="/dashboard/" class="back-button">Back to Dashboard</a>
+
+    <h1>Relay Control</h1>
+
+    <!-- Relay 1 Control -->
+    <div class="relay-control">
+        <h3>Relay 1</h3>
+        <div class="buttons">
+            <button onclick="controlRelay(1, 'on')">Turn On</button>
+            <button onclick="controlRelay(1, 'off')">Turn Off</button>
+        </div>
+        <label>Set On Time (Seconds): <input type="number" id="relay1OnTime"></label>
+        <label>Set Off Time (Seconds): <input type="number" id="relay1OffTime"></label>
+    </div>
+
+    <!-- Relay 2 Control -->
+    <div class="relay-control">
+        <h3>Relay 2</h3>
+        <div class="buttons">
+            <button onclick="controlRelay(2, 'on')">Turn On</button>
+            <button onclick="controlRelay(2, 'off')">Turn Off</button>
+        </div>
+        <label>Set On Time (Seconds): <input type="number" id="relay2OnTime"></label>
+        <label>Set Off Time (Seconds): <input type="number" id="relay2OffTime"></label>
+    </div>
+
+    <!-- Relay 3 Control -->
+    <div class="relay-control">
+        <h3>Relay 3</h3>
+        <div class="buttons">
+            <button onclick="controlRelay(3, 'on')">Turn On</button>
+            <button onclick="controlRelay(3, 'off')">Turn Off</button>
+        </div>
+        <label>Set On Time (Seconds): <input type="number" id="relay3OnTime"></label>
+        <label>Set Off Time (Seconds): <input type="number" id="relay3OffTime"></label>
+    </div>
+
+    <!-- Relay 4 Control -->
+    <div class="relay-control">
+        <h3>Relay 4</h3>
+        <div class="buttons">
+            <button onclick="controlRelay(4, 'on')">Turn On</button>
+            <button onclick="controlRelay(4, 'off')">Turn Off</button>
+        </div>
+        <label>Set On Time (Seconds): <input type="number" id="relay4OnTime"></label>
+        <label>Set Off Time (Seconds): <input type="number" id="relay4OffTime"></label>
+    </div>
+
+    <!-- Reset Button -->
+    <button onclick="resetTimers()">Reset All Timers</button>
+
+    <script>
+        function controlRelay(relayId, action) {
+            const onTime = document.getElementById(`relay${relayId}OnTime`).value || 0;
+            const offTime = document.getElementById(`relay${relayId}OffTime`).value || 0;
+
+            fetch('/api/control-relay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    relayId: relayId,
+                    action: action,
+                    onTime: onTime,
+                    offTime: offTime
+                })
+            }).then(response => response.json()).then(data => {
+                console.log('Relay controlled:', data);
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function resetTimers() {
+            fetch('/api/reset-timers', {
+                method: 'POST',
+            }).then(response => response.json()).then(data => {
+                console.log('Timers reset:', data);
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

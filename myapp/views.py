@@ -51,6 +51,52 @@ def latest_sensor_data(request):
     else:
         return JsonResponse({'error': 'No data available'}, status=404)
 
+# View to render the relay control page
+@login_required
+def relay_control_view(request):
+    return render(request, 'relay_control.html')
+
+# API view to handle relay control
+@csrf_exempt
+def control_relay(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            relay_id = data.get('relayId')
+            action = data.get('action')
+            on_time = data.get('onTime')
+            off_time = data.get('offTime')
+
+            # Validate required fields
+            if None in [relay_id, action, on_time, off_time]:
+                return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+            # Here you would send this data to the Raspberry Pi or save it in the database
+            # For now, we're just returning a successful response
+            return JsonResponse({'message': 'Relay controlled successfully', 'relay_id': relay_id, 'action': action, 'on_time': on_time, 'off_time': off_time})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+# API view to handle resetting all timers
+@csrf_exempt
+def reset_timers(request):
+    if request.method == 'POST':
+        try:
+            # Logic to reset all relay timers and turn off relays
+            # You would communicate this reset action to the Raspberry Pi
+
+            return JsonResponse({'message': 'All timers reset and relays turned off successfully'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 # API view to handle data upload from Raspberry Pi
 @csrf_exempt  # Disable CSRF for API requests
 def upload_sensor_data(request):

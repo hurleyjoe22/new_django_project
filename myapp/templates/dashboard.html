@@ -25,10 +25,53 @@
             position: fixed;
             top: 0;
             z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         header h1 {
             margin: 0;
+            flex-grow: 1;
         }
+
+        /* Hamburger menu */
+        .menu-icon {
+            font-size: 30px;
+            cursor: pointer;
+            padding: 0 20px;
+        }
+
+        /* Dropdown menu styling */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 200px;
+            text-align: left;
+            z-index: 1000;
+        }
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 20px;
+            color: #212529;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+        }
+        .dropdown-menu a:hover {
+            background-color: #32CD32;
+            color: white;
+        }
+
+        /* Show dropdown when active */
+        .dropdown-active .dropdown-menu {
+            display: block;
+        }
+
         .content {
             margin-top: 120px;
             width: 90%;
@@ -125,8 +168,17 @@
 </head>
 <body>
     <header>
+        <!-- Hamburger menu icon -->
+        <div class="menu-icon" id="menuIcon">&#9776;</div>
         <h1>Cooroibah Greens Farm Dashboard</h1>
     </header>
+
+    <!-- Dropdown menu -->
+    <div class="dropdown-menu" id="dropdownMenu">
+        <a href="/relay-control/">Control</a>
+        <!-- Add more links if needed -->
+    </div>
+
     <div class="content">
         <!-- Last Updated Container -->
         <div class="last-updated-container">
@@ -230,6 +282,11 @@
                 updateRelayStatus(4, data.relay4 === 'on');
             });
         }
+
+        // Hamburger menu functionality
+        $('#menuIcon').on('click', function() {
+            $('#dropdownMenu').toggleClass('dropdown-active');
+        });
 
         $(document).ready(function() {
             updateData();  // Fetch data when the page loads
