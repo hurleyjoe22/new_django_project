@@ -94,6 +94,18 @@
             font-size: 24px;
             font-weight: bold;
         }
+        .relay-indicator-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        .relay-indicator-container div {
+            margin: 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -125,6 +137,16 @@
             </div>
             <p id="ama4">Water Level: </p>
         </div>
+
+        <!-- Relay Status Container -->
+        <div class="relay-indicator-container">
+            <h2>Relay Status</h2>
+            <div id="relay1Status">Relay 1: Off</div>
+            <div id="relay2Status">Relay 2: Off</div>
+            <div id="relay3Status">Relay 3: Off</div>
+            <div id="relay4Status">Relay 4: Off</div>
+        </div>
+
         <div class="last-updated-container">
             <p id="lastUpdatedElement" class="timestamp">Last Updated: </p>
         </div>
@@ -158,15 +180,14 @@
             $('#' + waterId).css('height', percentage + "%");
         }
 
+        function updateRelayStatus(relayId, isOn) {
+            var statusText = isOn ? 'On' : 'Off';
+            $('#relay' + relayId + 'Status').text('Relay ' + relayId + ': ' + statusText);
+        }
+
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
                 displayLastUpdate(data.timestamp);
-
-
-                // Ensure temperature and humidity are formatted to two decimal places
-                var formattedTemperature = Number(parseFloat(data.temperature).toFixed(2));
-                var formattedHumidity = Number(parseFloat(data.humidity).toFixed(2));
-        
 
                 $('#temperature').text('Temperature: ' + data.temperature + ' °C');
                 $('#humidity').text('Humidity: ' + data.humidity + ' %');
@@ -177,6 +198,12 @@
                 updateWaterLevel('ama2', 'ama2Percentage', 'ama2Water', data.ama2_distance);
                 updateWaterLevel('ama3', 'ama3Percentage', 'ama3Water', data.ama3_distance);
                 updateWaterLevel('ama4', 'ama4Percentage', 'ama4Water', data.ama4_distance);
+
+                // Update relay statuses
+                updateRelayStatus(1, data.relay_states.relay1 === 0);
+                updateRelayStatus(2, data.relay_states.relay2 === 0);
+                updateRelayStatus(3, data.relay_states.relay3 === 0);
+                updateRelayStatus(4, data.relay_states.relay4 === 0);
             });
         }
 
