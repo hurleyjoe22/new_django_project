@@ -40,6 +40,12 @@ def latest_sensor_data(request):
             'ama4_distance': latest_data.ama4_distance,
             'temperature': latest_data.temperature,
             'humidity': latest_data.humidity,
+            'relay1': latest_data.relay1,
+            'relay2': latest_data.relay2,
+            'relay3': latest_data.relay3,
+            'relay4': latest_data.relay4,
+            'last_message': latest_data.last_message,
+            'last_message_timestamp': latest_data.last_message_timestamp.strftime('%Y-%m-%d %H:%M:%S') if latest_data.last_message_timestamp else None
         }
         return JsonResponse(data)
     else:
@@ -50,13 +56,26 @@ def latest_sensor_data(request):
 def upload_sensor_data(request):
     if request.method == 'POST':
         try:
+            # Parse JSON data from the request body
             data = json.loads(request.body)
+
+            # Extract sensor data from the request
             ama2_distance = data.get('ama2_distance')
             ama3_distance = data.get('ama3_distance')
             ama4_distance = data.get('ama4_distance')
             temperature = data.get('temperature')
             humidity = data.get('humidity')
+            relay1 = data.get('relay1')
+            relay2 = data.get('relay2')
+            relay3 = data.get('relay3')
+            relay4 = data.get('relay4')
+            last_message = data.get('last_message')
+            last_message_timestamp = data.get('last_message_timestamp')
             timestamp = data.get('timestamp')
+
+            # Validate that required data is present
+            if None in [ama2_distance, ama3_distance, ama4_distance, temperature, humidity, relay1, relay2, relay3, relay4, timestamp]:
+                return JsonResponse({'error': 'Missing required data fields'}, status=400)
 
             # Save the data to the database
             SensorData.objects.create(
@@ -64,11 +83,21 @@ def upload_sensor_data(request):
                 ama3_distance=ama3_distance,
                 ama4_distance=ama4_distance, 
                 temperature=temperature,
-                humidity=humidity, 
+                humidity=humidity,
+                relay1=relay1,
+                relay2=relay2,
+                relay3=relay3,
+                relay4=relay4,
+                last_message=last_message if last_message else "No message",  # Handle if last message is None
+                last_message_timestamp=last_message_timestamp if last_message_timestamp else None,
                 timestamp=timestamp
             )
 
             return JsonResponse({'message': 'Data received successfully'}, status=200)
+
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
     return JsonResponse({'error': 'Invalid request method'}, status=405)
