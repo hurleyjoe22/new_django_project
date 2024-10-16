@@ -200,10 +200,10 @@
                 updateWaterLevel('ama4', 'ama4Percentage', 'ama4Water', data.ama4_distance);
 
                 // Update relay statuses
-                updateRelayStatus(1, data.relay_states.relay1 === 0);
-                updateRelayStatus(2, data.relay_states.relay2 === 0);
-                updateRelayStatus(3, data.relay_states.relay3 === 0);
-                updateRelayStatus(4, data.relay_states.relay4 === 0);
+                updateRelayStatus(1, data.relay1 === 'on');
+                updateRelayStatus(2, data.relay2 === 'on');
+                updateRelayStatus(3, data.relay3 === 'on');
+                updateRelayStatus(4, data.relay4 === 'on');
             });
         }
 
