@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import SensorData  # Import the model
+from django.utils import timezone  # For handling timestamps
 
 # Login view
 def login_view(request):
@@ -71,8 +72,38 @@ def control_relay(request):
             if None in [relay_id, action, on_time, off_time]:
                 return JsonResponse({'error': 'Missing required fields'}, status=400)
 
-            # Here you would send this data to the Raspberry Pi or save it in the database
-            # For now, we're just returning a successful response
+            # Get or create the latest sensor data record
+            latest_data, created = SensorData.objects.get_or_create(
+                timestamp__date=timezone.now().date(),
+                defaults={
+                    'ama2_distance': 0,
+                    'ama3_distance': 0,
+                    'ama4_distance': 0,
+                    'temperature': 0,
+                    'humidity': 0,
+                    'relay1': 'off',
+                    'relay2': 'off',
+                    'relay3': 'off',
+                    'relay4': 'off'
+                }
+            )
+
+            # Update relay timers
+            if relay_id == 1:
+                latest_data.relay1_on_time = on_time
+                latest_data.relay1_off_time = off_time
+            elif relay_id == 2:
+                latest_data.relay2_on_time = on_time
+                latest_data.relay2_off_time = off_time
+            elif relay_id == 3:
+                latest_data.relay3_on_time = on_time
+                latest_data.relay3_off_time = off_time
+            elif relay_id == 4:
+                latest_data.relay4_on_time = on_time
+                latest_data.relay4_off_time = off_time
+
+            latest_data.save()  # Save changes to the database
+
             return JsonResponse({'message': 'Relay controlled successfully', 'relay_id': relay_id, 'action': action, 'on_time': on_time, 'off_time': off_time})
 
         except json.JSONDecodeError:
@@ -81,7 +112,7 @@ def control_relay(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     elif request.method == 'GET':
-        # Return the current state of the relays (for example, you might fetch this from the database)
+        # Return the current state of the relays from the database
         latest_data = SensorData.objects.order_by('-timestamp').first()
 
         if latest_data:
@@ -106,10 +137,23 @@ def control_relay(request):
 def reset_timers(request):
     if request.method == 'POST':
         try:
-            # Logic to reset all relay timers and turn off relays
-            # You would communicate this reset action to the Raspberry Pi
+            # Get the latest sensor data record and reset relay timers
+            latest_data = SensorData.objects.order_by('-timestamp').first()
 
-            return JsonResponse({'message': 'All timers reset and relays turned off successfully'})
+            if latest_data:
+                latest_data.relay1_on_time = 0
+                latest_data.relay1_off_time = 0
+                latest_data.relay2_on_time = 0
+                latest_data.relay2_off_time = 0
+                latest_data.relay3_on_time = 0
+                latest_data.relay3_off_time = 0
+                latest_data.relay4_on_time = 0
+                latest_data.relay4_off_time = 0
+
+                latest_data.save()  # Save the changes
+                return JsonResponse({'message': 'All timers reset and relays turned off successfully'})
+            else:
+                return JsonResponse({'error': 'No data found to reset'}, status=404)
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
