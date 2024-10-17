@@ -11,6 +11,10 @@
         }
         .relay-control {
             margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
         }
         label {
             display: block;
@@ -30,6 +34,29 @@
         }
         .relay-off {
             color: red;
+        }
+
+        /* Active timer styles */
+        .active-timers {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+        }
+        .no-active-timers {
+            color: #999;
+        }
+
+        /* Last updated container styling */
+        .last-updated {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f7fa;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
         }
 
         /* Back to Dashboard button styling */
@@ -64,6 +91,9 @@
         <label>Set On Time (Seconds): <input type="number" id="relay1OnTime"></label>
         <label>Set Off Time (Seconds): <input type="number" id="relay1OffTime"></label>
         <button onclick="submitTimers(1)">Submit Timers</button>
+
+        <!-- Active Timer Display -->
+        <div id="relay1Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
 
     <!-- Relay 2 Control -->
@@ -76,6 +106,9 @@
         <label>Set On Time (Seconds): <input type="number" id="relay2OnTime"></label>
         <label>Set Off Time (Seconds): <input type="number" id="relay2OffTime"></label>
         <button onclick="submitTimers(2)">Submit Timers</button>
+
+        <!-- Active Timer Display -->
+        <div id="relay2Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
 
     <!-- Relay 3 Control -->
@@ -88,6 +121,9 @@
         <label>Set On Time (Seconds): <input type="number" id="relay3OnTime"></label>
         <label>Set Off Time (Seconds): <input type="number" id="relay3OffTime"></label>
         <button onclick="submitTimers(3)">Submit Timers</button>
+
+        <!-- Active Timer Display -->
+        <div id="relay3Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
 
     <!-- Relay 4 Control -->
@@ -100,13 +136,21 @@
         <label>Set On Time (Seconds): <input type="number" id="relay4OnTime"></label>
         <label>Set Off Time (Seconds): <input type="number" id="relay4OffTime"></label>
         <button onclick="submitTimers(4)">Submit Timers</button>
+
+        <!-- Active Timer Display -->
+        <div id="relay4Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
 
     <!-- Reset Button -->
     <button onclick="resetTimers()">Reset All Timers</button>
 
+    <!-- Last Updated Container -->
+    <div class="last-updated">
+        Last Updated: <span id="lastUpdatedTime">Not yet updated</span>
+    </div>
+
     <script>
-        // Fetch initial relay states and update the relay indicators
+        // Fetch initial relay states and update the relay indicators and active timers
         function fetchRelayStates() {
             fetch('/api/latest-sensor-data')
                 .then(response => response.json())
@@ -115,6 +159,11 @@
                     updateRelayStatus(2, data.relay2);
                     updateRelayStatus(3, data.relay3);
                     updateRelayStatus(4, data.relay4);
+                    updateActiveTimers(1, data.relay1_on_time, data.relay1_off_time);
+                    updateActiveTimers(2, data.relay2_on_time, data.relay2_off_time);
+                    updateActiveTimers(3, data.relay3_on_time, data.relay3_off_time);
+                    updateActiveTimers(4, data.relay4_on_time, data.relay4_off_time);
+                    updateLastUpdated(); // Update the last updated time
                 })
                 .catch(error => console.error('Error fetching relay states:', error));
         }
@@ -131,6 +180,25 @@
                 statusElement.classList.remove('relay-on');
                 statusElement.classList.add('relay-off');
             }
+        }
+
+        // Update active timers for each relay
+        function updateActiveTimers(relayId, onTime, offTime) {
+            const timerElement = document.getElementById(`relay${relayId}Timers`);
+            if (onTime > 0 || offTime > 0) {
+                timerElement.classList.remove('no-active-timers');
+                timerElement.textContent = `On Timer: ${onTime} seconds, Off Timer: ${offTime} seconds`;
+            } else {
+                timerElement.classList.add('no-active-timers');
+                timerElement.textContent = 'No active timers';
+            }
+        }
+
+        // Update the last updated time
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdatedTime').textContent = timeString;
         }
 
         // Function to control relays
@@ -186,15 +254,16 @@
                 method: 'POST',
             }).then(response => response.json()).then(data => {
                 console.log('Timers reset:', data);
-                fetchRelayStates();  // Update relay statuses after reset
+                fetchRelayStates();  // Update relay statuses and timers after reset
             }).catch(error => {
                 console.error('Error resetting timers:', error);
             });
         }
 
-        // Fetch the initial relay states when the page loads
+        // Fetch the initial relay states when the page loads and refresh the states every second
         document.addEventListener('DOMContentLoaded', function() {
             fetchRelayStates();
+            setInterval(fetchRelayStates, 1000);  // Automatically refresh relay states and timers every second
         });
     </script>
 </body>
