@@ -152,7 +152,7 @@
     <script>
         // Fetch initial relay states and update the relay indicators and active timers
         function fetchRelayStates() {
-            fetch('/api/latest-sensor-data')
+            fetch('/api/latest-sensor-data/')
                 .then(response => response.json())
                 .then(data => {
                     updateRelayStatus(1, data.relay1);
@@ -206,7 +206,7 @@
             const onTime = document.getElementById(`relay${relayId}OnTime`).value || 0;
             const offTime = document.getElementById(`relay${relayId}OffTime`).value || 0;
 
-            fetch('/api/control-relay', {
+            fetch('/api/control-relay/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -230,7 +230,7 @@
             const onTime = document.getElementById(`relay${relayId}OnTime`).value || 0;
             const offTime = document.getElementById(`relay${relayId}OffTime`).value || 0;
 
-            fetch('/api/control-relay', {
+            fetch('/api/control-relay/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -250,7 +250,7 @@
 
         // Reset all timers
         function resetTimers() {
-            fetch('/api/reset-timers', {
+            fetch('/api/reset-timers/', {
                 method: 'POST',
             }).then(response => response.json()).then(data => {
                 console.log('Timers reset:', data);
