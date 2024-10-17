@@ -7,6 +7,10 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import SensorData  # Import the model
 from django.utils import timezone  # For handling timestamps
+import logging
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 # Login view
 def login_view(request):
@@ -63,6 +67,7 @@ def control_relay(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            logger.info(f"Received data: {data}")
             relay_id = data.get('relayId')
             action = data.get('action')
             on_time = data.get('onTime')
@@ -70,23 +75,16 @@ def control_relay(request):
 
             # Validate required fields
             if None in [relay_id, action, on_time, off_time]:
+                logger.error('Missing required fields')
                 return JsonResponse({'error': 'Missing required fields'}, status=400)
 
             # Get or create the latest sensor data record
-            latest_data, created = SensorData.objects.get_or_create(
-                timestamp__date=timezone.now().date(),
-                defaults={
-                    'ama2_distance': 0,
-                    'ama3_distance': 0,
-                    'ama4_distance': 0,
-                    'temperature': 0,
-                    'humidity': 0,
-                    'relay1': 'off',
-                    'relay2': 'off',
-                    'relay3': 'off',
-                    'relay4': 'off'
-                }
-            )
+            latest_data = SensorData.objects.order_by('-timestamp').first()
+            if not latest_data:
+                latest_data = SensorData.objects.create(
+                    ama2_distance=0, ama3_distance=0, ama4_distance=0, temperature=0, humidity=0,
+                    relay1='off', relay2='off', relay3='off', relay4='off', timestamp=timezone.now()
+                )
 
             # Update relay timers
             if relay_id == 1:
@@ -107,8 +105,10 @@ def control_relay(request):
             return JsonResponse({'message': 'Relay controlled successfully', 'relay_id': relay_id, 'action': action, 'on_time': on_time, 'off_time': off_time})
 
         except json.JSONDecodeError:
+            logger.error('Invalid JSON received')
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
+            logger.error(f"Error processing relay control: {e}")
             return JsonResponse({'error': str(e)}, status=500)
 
     elif request.method == 'GET':
@@ -153,9 +153,11 @@ def reset_timers(request):
                 latest_data.save()  # Save the changes
                 return JsonResponse({'message': 'All timers reset and relays turned off successfully'})
             else:
+                logger.error('No data found to reset')
                 return JsonResponse({'error': 'No data found to reset'}, status=404)
 
         except Exception as e:
+            logger.error(f"Error resetting timers: {e}")
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
@@ -184,6 +186,7 @@ def upload_sensor_data(request):
 
             # Validate that required data is present
             if None in [ama2_distance, ama3_distance, ama4_distance, temperature, humidity, relay1, relay2, relay3, relay4, timestamp]:
+                logger.error('Missing required data fields')
                 return JsonResponse({'error': 'Missing required data fields'}, status=400)
 
             # Save the data to the database
@@ -205,8 +208,10 @@ def upload_sensor_data(request):
             return JsonResponse({'message': 'Data received successfully'}, status=200)
 
         except json.JSONDecodeError:
+            logger.error('Invalid JSON in sensor data upload')
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
+            logger.error(f"Error uploading sensor data: {e}")
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
