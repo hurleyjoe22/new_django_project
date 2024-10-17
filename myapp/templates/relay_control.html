@@ -206,6 +206,14 @@
             const onTime = document.getElementById(`relay${relayId}OnTime`).value || 0;
             const offTime = document.getElementById(`relay${relayId}OffTime`).value || 0;
 
+            // Log the data being sent
+            console.log("Sending data to backend:", {
+                relayId: relayId,
+                action: action,
+                onTime: onTime,
+                offTime: offTime
+            });
+
             fetch('/api/control-relay/', {
                 method: 'POST',
                 headers: {
@@ -221,9 +229,10 @@
                 console.log('Relay controlled:', data);
                 fetchRelayStates();  // Update relay statuses after control
             }).catch(error => {
-                console.error('Error:', error);
+        console.error('Error:', error);
             });
         }
+
 
         // Function to submit timers
         function submitTimers(relayId) {

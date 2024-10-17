@@ -65,26 +65,40 @@ def relay_control_view(request):
 @csrf_exempt
 def control_relay(request):
     if request.method == 'POST':
+        print("POST request received")  # Check if request reaches the view
+        
         try:
+            # Check if data is received
             data = json.loads(request.body)
-            logger.info(f"Received data: {data}")
+            print("Received data:", data)  # Check what data is received
+            
             relay_id = data.get('relayId')
             action = data.get('action')
             on_time = data.get('onTime')
             off_time = data.get('offTime')
 
-            # Validate required fields
+            # Check if all fields are present
             if None in [relay_id, action, on_time, off_time]:
-                logger.error('Missing required fields')
+                print("Missing fields:", relay_id, action, on_time, off_time)
                 return JsonResponse({'error': 'Missing required fields'}, status=400)
+            else:
+                print(f"All fields present: relay_id={relay_id}, action={action}, on_time={on_time}, off_time={off_time}")
 
             # Get or create the latest sensor data record
-            latest_data = SensorData.objects.order_by('-timestamp').first()
-            if not latest_data:
-                latest_data = SensorData.objects.create(
-                    ama2_distance=0, ama3_distance=0, ama4_distance=0, temperature=0, humidity=0,
-                    relay1='off', relay2='off', relay3='off', relay4='off', timestamp=timezone.now()
-                )
+            latest_data, created = SensorData.objects.get_or_create(
+                timestamp__date=timezone.now().date(),
+                defaults={
+                    'ama2_distance': 0,
+                    'ama3_distance': 0,
+                    'ama4_distance': 0,
+                    'temperature': 0,
+                    'humidity': 0,
+                    'relay1': 'off',
+                    'relay2': 'off',
+                    'relay3': 'off',
+                    'relay4': 'off'
+                }
+            )
 
             # Update relay timers
             if relay_id == 1:
@@ -101,14 +115,15 @@ def control_relay(request):
                 latest_data.relay4_off_time = off_time
 
             latest_data.save()  # Save changes to the database
+            print("Data saved to the database:", latest_data)  # Confirm data save
 
             return JsonResponse({'message': 'Relay controlled successfully', 'relay_id': relay_id, 'action': action, 'on_time': on_time, 'off_time': off_time})
 
         except json.JSONDecodeError:
-            logger.error('Invalid JSON received')
+            print("JSON Decode Error")  # Debug JSON error
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
-            logger.error(f"Error processing relay control: {e}")
+            print("Error occurred:", str(e))  # Print any exception for debugging
             return JsonResponse({'error': str(e)}, status=500)
 
     elif request.method == 'GET':
@@ -131,6 +146,7 @@ def control_relay(request):
             return JsonResponse({'error': 'No relay control data available'}, status=404)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
 # API view to handle resetting all timers
 @csrf_exempt
