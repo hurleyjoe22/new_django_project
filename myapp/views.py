@@ -84,40 +84,30 @@ def control_relay(request):
             else:
                 print(f"All fields present: relay_id={relay_id}, action={action}, on_time={on_time}, off_time={off_time}")
 
-            # Get or create the latest sensor data record
-            latest_data, created = SensorData.objects.get_or_create(
-                timestamp__date=timezone.now().date(),
-                defaults={
-                    'ama2_distance': 0,
-                    'ama3_distance': 0,
-                    'ama4_distance': 0,
-                    'temperature': 0,
-                    'humidity': 0,
-                    'relay1': 'off',
-                    'relay2': 'off',
-                    'relay3': 'off',
-                    'relay4': 'off'
-                }
-            )
+            # Get the latest sensor data for the current date, handling multiple records issue
+            latest_data = SensorData.objects.filter(timestamp__date=timezone.now().date()).order_by('-timestamp').first()
 
-            # Update relay timers
-            if relay_id == 1:
-                latest_data.relay1_on_time = on_time
-                latest_data.relay1_off_time = off_time
-            elif relay_id == 2:
-                latest_data.relay2_on_time = on_time
-                latest_data.relay2_off_time = off_time
-            elif relay_id == 3:
-                latest_data.relay3_on_time = on_time
-                latest_data.relay3_off_time = off_time
-            elif relay_id == 4:
-                latest_data.relay4_on_time = on_time
-                latest_data.relay4_off_time = off_time
+            if latest_data:
+                # Update relay timers based on the relay_id
+                if relay_id == 1:
+                    latest_data.relay1_on_time = on_time
+                    latest_data.relay1_off_time = off_time
+                elif relay_id == 2:
+                    latest_data.relay2_on_time = on_time
+                    latest_data.relay2_off_time = off_time
+                elif relay_id == 3:
+                    latest_data.relay3_on_time = on_time
+                    latest_data.relay3_off_time = off_time
+                elif relay_id == 4:
+                    latest_data.relay4_on_time = on_time
+                    latest_data.relay4_off_time = off_time
 
-            latest_data.save()  # Save changes to the database
-            print("Data saved to the database:", latest_data)  # Confirm data save
+                latest_data.save()  # Save changes to the database
+                print("Data saved to the database:", latest_data)  # Confirm data save
 
-            return JsonResponse({'message': 'Relay controlled successfully', 'relay_id': relay_id, 'action': action, 'on_time': on_time, 'off_time': off_time})
+                return JsonResponse({'message': 'Relay controlled successfully', 'relay_id': relay_id, 'action': action, 'on_time': on_time, 'off_time': off_time})
+            else:
+                return JsonResponse({'error': 'No sensor data found for today'}, status=404)
 
         except json.JSONDecodeError:
             print("JSON Decode Error")  # Debug JSON error
