@@ -80,6 +80,25 @@ def control_relay(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+    elif request.method == 'GET':
+        # Return the current state of the relays (for example, you might fetch this from the database)
+        latest_data = SensorData.objects.order_by('-timestamp').first()
+
+        if latest_data:
+            data = {
+                'relay1_on_time': latest_data.relay1_on_time,
+                'relay1_off_time': latest_data.relay1_off_time,
+                'relay2_on_time': latest_data.relay2_on_time,
+                'relay2_off_time': latest_data.relay2_off_time,
+                'relay3_on_time': latest_data.relay3_on_time,
+                'relay3_off_time': latest_data.relay3_off_time,
+                'relay4_on_time': latest_data.relay4_on_time,
+                'relay4_off_time': latest_data.relay4_off_time
+            }
+            return JsonResponse(data)
+        else:
+            return JsonResponse({'error': 'No relay control data available'}, status=404)
+
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 # API view to handle resetting all timers
