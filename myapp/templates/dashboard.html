@@ -334,7 +334,7 @@
                     var dataTime = new Date(data.timestamp).getTime();
                     var timeDifference = (currentTime - dataTime) / 1000;
 
-                    if (timeDifference > 10) {
+                    if (timeDifference > 20) {
                         $('#dashboardContent').fadeOut(500, function () {
                             $('#loadingContainer').fadeIn(500);
                             $('#loadingMessage').text('Connection lost, retrying...');
