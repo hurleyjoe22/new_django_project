@@ -36,6 +36,13 @@
             color: red;
         }
 
+        /* Sync status styles */
+        .sync-status {
+            font-size: 12px;
+            color: blue;
+            margin-left: 10px;
+        }
+
         /* Last updated container styling */
         .last-updated {
             margin-top: 20px;
@@ -59,6 +66,7 @@
             <button onclick="controlRelay(1, 'on')">Turn On</button>
             <button onclick="controlRelay(1, 'off')">Turn Off</button>
         </div>
+        <div id="relay1SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
     </div>
 
     <!-- Relay 2 Control -->
@@ -68,6 +76,7 @@
             <button onclick="controlRelay(2, 'on')">Turn On</button>
             <button onclick="controlRelay(2, 'off')">Turn Off</button>
         </div>
+        <div id="relay2SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
     </div>
 
     <!-- Relay 3 Control -->
@@ -77,6 +86,7 @@
             <button onclick="controlRelay(3, 'on')">Turn On</button>
             <button onclick="controlRelay(3, 'off')">Turn Off</button>
         </div>
+        <div id="relay3SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
     </div>
 
     <!-- Relay 4 Control -->
@@ -86,6 +96,7 @@
             <button onclick="controlRelay(4, 'on')">Turn On</button>
             <button onclick="controlRelay(4, 'off')">Turn Off</button>
         </div>
+        <div id="relay4SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
     </div>
 
     <!-- Last Updated Container -->
@@ -111,6 +122,8 @@
         // Update the relay status indicators
         function updateRelayStatus(relayId, state) {
             const statusElement = document.getElementById(`relay${relayId}Status`);
+            const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
+            
             if (state === 'on') {
                 statusElement.textContent = 'On';
                 statusElement.classList.remove('relay-off');
@@ -120,6 +133,8 @@
                 statusElement.classList.remove('relay-on');
                 statusElement.classList.add('relay-off');
             }
+
+            syncElement.textContent = ""; // Clear sync message when state is confirmed
         }
 
         // Update the last updated time
@@ -131,21 +146,69 @@
 
         // Function to control relays
         function controlRelay(relayId, action) {
-            fetch('/api/control-relay/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    relayId: relayId,
-                    action: action
-                })
-            }).then(response => response.json()).then(data => {
-                console.log('Relay controlled:', data);
-                fetchRelayStates();  // Update relay statuses after control
-            }).catch(error => {
-                console.error('Error:', error);
-            });
+            const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
+            let attempts = 0;
+            const maxAttempts = 10;
+
+            // Set sync message
+            syncElement.textContent = "Relay sync in progress...";
+
+            function sendRequest() {
+                fetch('/api/control-relay/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        relayId: relayId,
+                        action: action
+                    })
+                }).then(response => response.json()).then(data => {
+                    if (data.message) {
+                        console.log(`Relay ${relayId} controlled successfully: ${action}`);
+                        checkRelayState();
+                    } else {
+                        console.error('API Error:', data.error);
+                        retry();
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    retry();
+                });
+            }
+
+            function checkRelayState() {
+                fetch('/api/latest-sensor-data/')
+                    .then(response => response.json())
+                    .then(data => {
+                        const expectedState = (action === 'on') ? 'on' : 'off';
+                        const actualState = data[`relay${relayId}`];
+
+                        if (actualState === expectedState) {
+                            updateRelayStatus(relayId, actualState);
+                            syncElement.textContent = "Relay synced successfully";
+                        } else {
+                            retry();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching relay state:', error);
+                        retry();
+                    });
+            }
+
+            function retry() {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    console.log(`Retrying... (attempt ${attempts})`);
+                    sendRequest();
+                } else {
+                    console.error(`Failed to control relay ${relayId} after ${maxAttempts} attempts.`);
+                    syncElement.textContent = "Sync failed. Please try again.";
+                }
+            }
+
+            sendRequest();
         }
 
         // Fetch the initial relay states when the page loads and refresh the states every second
