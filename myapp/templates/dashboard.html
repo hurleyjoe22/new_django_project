@@ -267,6 +267,20 @@
 
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
+                var currentTime = new Date().getTime();
+                var dataTime = new Date(data.timestamp).getTime();
+                var timeDifference = (currentTime - dataTime) / 1000;
+
+                if (timeDifference > 10) {
+                    // Data is outdated, show loading screen again
+                    $('#dashboardContent').fadeOut(500, function () {
+                        $('#loadingContainer').fadeIn(500);
+                        $('#loadingMessage').text('Connection lost, retrying...');
+                    });
+                    return;
+                }
+
+                // Hide loading container and show dashboard
                 $('#loadingContainer').fadeOut(500, function () {
                     $('#dashboardContent').fadeIn(500);
                 });
@@ -294,7 +308,6 @@
         $(document).ready(function() {
             var retryCount = 0;
             var maxRetries = 10;
-            var lastDataTimestamp = null;
 
             function checkData() {
                 if (retryCount < maxRetries) {
@@ -317,15 +330,20 @@
             // Monitor data and revert if connection lost after loading
             setInterval(function() {
                 $.get('/api/latest-sensor-data/', function (data) {
-                    if (data.timestamp !== lastDataTimestamp) {
-                        lastDataTimestamp = data.timestamp;
-                        retryCount = 0; // Reset retry count if data is successfully received
+                    var currentTime = new Date().getTime();
+                    var dataTime = new Date(data.timestamp).getTime();
+                    var timeDifference = (currentTime - dataTime) / 1000;
+
+                    if (timeDifference > 10) {
+                        $('#dashboardContent').fadeOut(500, function () {
+                            $('#loadingContainer').fadeIn(500);
+                            $('#loadingMessage').text('Connection lost, retrying...');
+                        });
                     }
                 }).fail(function () {
                     $('#dashboardContent').fadeOut(500, function () {
                         $('#loadingContainer').fadeIn(500);
                         $('#loadingMessage').text('Connection lost, retrying...');
-                        retryCount = 0; // Reset retry count when connection is lost
                     });
                 });
             }, 10000);
