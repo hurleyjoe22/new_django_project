@@ -5,8 +5,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import SensorData  # Import the model
-from django.utils import timezone  # For handling timestamps
+from .models import SensorData
+from django.utils import timezone
 import logging
 
 # Setup logger
@@ -22,15 +22,14 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('dashboard')  # Redirect to the dashboard
+                return redirect('dashboard')
     else:
         form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})  # Render the login form
+    return render(request, 'login.html', {'form': form})
 
 # Dashboard view
 @login_required
 def dashboard(request):
-    # Just render the dashboard, data will be populated via API
     return render(request, 'dashboard.html')
 
 # API view to handle real-time sensor data request
@@ -65,71 +64,50 @@ def relay_control_view(request):
 @csrf_exempt
 def control_relay(request):
     if request.method == 'POST':
-        print("POST request received")  # Check if request reaches the view
-        
         try:
-            # Check if data is received
+            # Parse the request data
             data = json.loads(request.body)
-            print("Received data:", data)  # Check what data is received
-            
             relay_id = data.get('relayId')
             action = data.get('action')
-            on_time = data.get('onTime')
-            off_time = data.get('offTime')
 
-            # Check if all fields are present
-            if None in [relay_id, action, on_time, off_time]:
-                print("Missing fields:", relay_id, action, on_time, off_time)
-                return JsonResponse({'error': 'Missing required fields'}, status=400)
-            else:
-                print(f"All fields present: relay_id={relay_id}, action={action}, on_time={on_time}, off_time={off_time}")
+            # Validate the presence of required fields
+            if relay_id is None or action not in ['on', 'off']:
+                return JsonResponse({'error': 'Missing or invalid fields'}, status=400)
 
-            # Get the latest sensor data for the current date, handling multiple records issue
+            # Get the latest sensor data for the current date
             latest_data = SensorData.objects.filter(timestamp__date=timezone.now().date()).order_by('-timestamp').first()
 
             if latest_data:
-                # Update relay timers based on the relay_id
+                # Update relay state based on the relay_id
                 if relay_id == 1:
-                    latest_data.relay1_on_time = on_time
-                    latest_data.relay1_off_time = off_time
+                    latest_data.relay1 = action
                 elif relay_id == 2:
-                    latest_data.relay2_on_time = on_time
-                    latest_data.relay2_off_time = off_time
+                    latest_data.relay2 = action
                 elif relay_id == 3:
-                    latest_data.relay3_on_time = on_time
-                    latest_data.relay3_off_time = off_time
+                    latest_data.relay3 = action
                 elif relay_id == 4:
-                    latest_data.relay4_on_time = on_time
-                    latest_data.relay4_off_time = off_time
+                    latest_data.relay4 = action
 
                 latest_data.save()  # Save changes to the database
-                print("Data saved to the database:", latest_data)  # Confirm data save
-
-                return JsonResponse({'message': 'Relay controlled successfully', 'relay_id': relay_id, 'action': action, 'on_time': on_time, 'off_time': off_time})
+                return JsonResponse({'message': 'Relay controlled successfully', 'relayId': relay_id, 'action': action})
             else:
                 return JsonResponse({'error': 'No sensor data found for today'}, status=404)
 
         except json.JSONDecodeError:
-            print("JSON Decode Error")  # Debug JSON error
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
-            print("Error occurred:", str(e))  # Print any exception for debugging
+            logger.error(f"Error occurred: {e}")
             return JsonResponse({'error': str(e)}, status=500)
 
     elif request.method == 'GET':
-        # Return the current state of the relays from the database
         latest_data = SensorData.objects.order_by('-timestamp').first()
 
         if latest_data:
             data = {
-                'relay1_on_time': latest_data.relay1_on_time,
-                'relay1_off_time': latest_data.relay1_off_time,
-                'relay2_on_time': latest_data.relay2_on_time,
-                'relay2_off_time': latest_data.relay2_off_time,
-                'relay3_on_time': latest_data.relay3_on_time,
-                'relay3_off_time': latest_data.relay3_off_time,
-                'relay4_on_time': latest_data.relay4_on_time,
-                'relay4_off_time': latest_data.relay4_off_time
+                'relay1': latest_data.relay1,
+                'relay2': latest_data.relay2,
+                'relay3': latest_data.relay3,
+                'relay4': latest_data.relay4
             }
             return JsonResponse(data)
         else:
@@ -137,39 +115,8 @@ def control_relay(request):
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-
-# API view to handle resetting all timers
-@csrf_exempt
-def reset_timers(request):
-    if request.method == 'POST':
-        try:
-            # Get the latest sensor data record and reset relay timers
-            latest_data = SensorData.objects.order_by('-timestamp').first()
-
-            if latest_data:
-                latest_data.relay1_on_time = 0
-                latest_data.relay1_off_time = 0
-                latest_data.relay2_on_time = 0
-                latest_data.relay2_off_time = 0
-                latest_data.relay3_on_time = 0
-                latest_data.relay3_off_time = 0
-                latest_data.relay4_on_time = 0
-                latest_data.relay4_off_time = 0
-
-                latest_data.save()  # Save the changes
-                return JsonResponse({'message': 'All timers reset and relays turned off successfully'})
-            else:
-                logger.error('No data found to reset')
-                return JsonResponse({'error': 'No data found to reset'}, status=404)
-
-        except Exception as e:
-            logger.error(f"Error resetting timers: {e}")
-            return JsonResponse({'error': str(e)}, status=500)
-
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
-
 # API view to handle data upload from Raspberry Pi
-@csrf_exempt  # Disable CSRF for API requests
+@csrf_exempt
 def upload_sensor_data(request):
     if request.method == 'POST':
         try:
@@ -192,7 +139,6 @@ def upload_sensor_data(request):
 
             # Validate that required data is present
             if None in [ama2_distance, ama3_distance, ama4_distance, temperature, humidity, relay1, relay2, relay3, relay4, timestamp]:
-                logger.error('Missing required data fields')
                 return JsonResponse({'error': 'Missing required data fields'}, status=400)
 
             # Save the data to the database
@@ -206,7 +152,7 @@ def upload_sensor_data(request):
                 relay2=relay2,
                 relay3=relay3,
                 relay4=relay4,
-                last_message=last_message if last_message else "No message",  # Handle if last message is None
+                last_message=last_message if last_message else "No message",
                 last_message_timestamp=last_message_timestamp if last_message_timestamp else None,
                 timestamp=timestamp
             )
@@ -214,7 +160,6 @@ def upload_sensor_data(request):
             return JsonResponse({'message': 'Data received successfully'}, status=200)
 
         except json.JSONDecodeError:
-            logger.error('Invalid JSON in sensor data upload')
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             logger.error(f"Error uploading sensor data: {e}")

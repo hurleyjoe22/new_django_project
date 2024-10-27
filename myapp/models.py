@@ -13,16 +13,6 @@ class SensorData(models.Model):
     relay3 = models.CharField(max_length=5, default='off')
     relay4 = models.CharField(max_length=5, default='off')
 
-    # New fields for relay timers (in seconds)
-    relay1_on_time = models.IntegerField(default=0)  # Timer in seconds
-    relay1_off_time = models.IntegerField(default=0)
-    relay2_on_time = models.IntegerField(default=0)
-    relay2_off_time = models.IntegerField(default=0)
-    relay3_on_time = models.IntegerField(default=0)
-    relay3_off_time = models.IntegerField(default=0)
-    relay4_on_time = models.IntegerField(default=0)
-    relay4_off_time = models.IntegerField(default=0)
-
     # Last text message and timestamp fields
     last_message = models.TextField(null=True, blank=True)
     last_message_timestamp = models.DateTimeField(null=True, blank=True)
