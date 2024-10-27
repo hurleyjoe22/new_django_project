@@ -247,10 +247,25 @@
         };
 
         var dataTimeout;
+        var lastData = null;
+        var countdown = 15;
         
+        function startCountdown() {
+            countdown = 15;
+            var countdownInterval = setInterval(function() {
+                if (countdown > 0) {
+                    console.log('Countdown: ' + countdown);
+                    countdown--;
+                } else {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+        }
+
         function resetDataTimeout() {
             console.log('Resetting data timeout.');
             clearTimeout(dataTimeout);
+            startCountdown();
             dataTimeout = setTimeout(function() {
                 console.log('No data received for 15 seconds. Reverting to loading screen.');
                 $('#dashboardContent').fadeOut(500, function () {
@@ -295,6 +310,13 @@
             console.log('Attempting to update data from server.');
             $.get('/api/latest-sensor-data/', function (data) {
                 console.log('Data received:', data);
+
+                if (JSON.stringify(data) === JSON.stringify(lastData)) {
+                    console.log('No new data. Skipping update.');
+                    return;
+                }
+
+                lastData = data;
                 // Hide loading container and show dashboard
                 if ($('#loadingContainer').is(':visible')) {
                     $('#loadingContainer').fadeOut(500, function () {
