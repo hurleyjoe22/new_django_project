@@ -289,9 +289,11 @@
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
                 // Hide loading container and show dashboard
-                $('#loadingContainer').fadeOut(500, function () {
-                    $('#dashboardContent').fadeIn(500);
-                });
+                if ($('#loadingContainer').is(':visible')) {
+                    $('#loadingContainer').fadeOut(500, function () {
+                        $('#dashboardContent').fadeIn(500);
+                    });
+                }
                 displayLastUpdate(data.timestamp);
 
                 $('#temperature').text('Temperature: ' + data.temperature + ' °C');
@@ -317,14 +319,10 @@
         }
 
         $(document).ready(function() {
-            function checkData() {
-                updateData();
-            }
+            // Initial check for new data every second
+            setInterval(updateData, 1000);
 
-            // Check for new data every second
-            setInterval(checkData, 1000);
-
-            // Monitor data and revert if connection lost after loading
+            // Monitor data timeout every 15 seconds
             setInterval(function() {
                 $.get('/api/latest-sensor-data/', function (data) {
                     resetDataTimeout();
@@ -334,7 +332,7 @@
                         $('#loadingMessage').text('Connection lost, retrying...');
                     });
                 });
-            }, 10000);
+            }, 15000);
         });
     </script>
 </body>
