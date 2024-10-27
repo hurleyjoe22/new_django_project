@@ -246,6 +246,18 @@
             ama4: 970
         };
 
+        var dataTimeout;
+        
+        function resetDataTimeout() {
+            clearTimeout(dataTimeout);
+            dataTimeout = setTimeout(function() {
+                $('#dashboardContent').fadeOut(500, function () {
+                    $('#loadingContainer').fadeIn(500);
+                    $('#loadingMessage').text('Connection lost, retrying...');
+                });
+            }, 15000); // 15 seconds countdown
+        }
+
         function displayLastUpdate(timestamp) {
             // Parse the timestamp received from the server
             var lastUpdate = new Date(timestamp);
@@ -276,19 +288,6 @@
 
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
-                var currentTime = new Date().getTime();
-                var dataTime = new Date(data.timestamp).getTime();
-                var timeDifference = (currentTime - dataTime) / 1000;
-
-                if (timeDifference > 20) {
-                    // Data is outdated, show loading screen again
-                    $('#dashboardContent').fadeOut(500, function () {
-                        $('#loadingContainer').fadeIn(500);
-                        $('#loadingMessage').text('Connection lost, retrying...');
-                    });
-                    return;
-                }
-
                 // Hide loading container and show dashboard
                 $('#loadingContainer').fadeOut(500, function () {
                     $('#dashboardContent').fadeIn(500);
@@ -309,6 +308,9 @@
                 updateRelayStatus(2, data.relay2 === 'on');
                 updateRelayStatus(3, data.relay3 === 'on');
                 updateRelayStatus(4, data.relay4 === 'on');
+
+                // Reset the timeout since new data was received
+                resetDataTimeout();
             }).fail(function () {
                 $('#loadingMessage').text('Sync failed, retrying...');
             });
@@ -339,16 +341,7 @@
             // Monitor data and revert if connection lost after loading
             setInterval(function() {
                 $.get('/api/latest-sensor-data/', function (data) {
-                    var currentTime = new Date().getTime();
-                    var dataTime = new Date(data.timestamp).getTime();
-                    var timeDifference = (currentTime - dataTime) / 1000;
-
-                    if (timeDifference > 20) {
-                        $('#dashboardContent').fadeOut(500, function () {
-                            $('#loadingContainer').fadeIn(500);
-                            $('#loadingMessage').text('Connection lost, retrying...');
-                        });
-                    }
+                    resetDataTimeout();
                 }).fail(function () {
                     $('#dashboardContent').fadeOut(500, function () {
                         $('#loadingContainer').fadeIn(500);
