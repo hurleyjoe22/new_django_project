@@ -57,9 +57,27 @@
             font-weight: bold;
             color: #333;
         }
+
+        /* Back to Dashboard button styling */
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #32CD32;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .back-button:hover {
+            background-color: #28a745;
+        }
     </style>
 </head>
 <body>
+    <!-- Back to Dashboard Button -->
+    <a href="/dashboard/" class="back-button">Back to Dashboard</a>
+
     <h1>Relay Control</h1>
 
     <!-- Relay 1 Control -->
@@ -110,23 +128,33 @@
     <script>
         // Fetch initial relay states and update the relay indicators
         function fetchRelayStates() {
+            console.log("Fetching relay states...");
             fetch('/api/latest-sensor-data/')
                 .then(response => response.json())
                 .then(data => {
-                    updateRelayStatus(1, data.relay1);
-                    updateRelayStatus(2, data.relay2);
-                    updateRelayStatus(3, data.relay3);
-                    updateRelayStatus(4, data.relay4);
-                    updateLastUpdated(); // Update the last updated time
+                    if (data) {
+                        console.log("Data received:", data);
+                        updateRelayStatus(1, data.relay1);
+                        updateRelayStatus(2, data.relay2);
+                        updateRelayStatus(3, data.relay3);
+                        updateRelayStatus(4, data.relay4);
+                        updateLastUpdated(); // Update the last updated time
+                    } else {
+                        console.error("No valid data received.");
+                        setUnknownState();
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching relay states:', error);
-                    // Set all relays to 'Unknown' if there's an error
-                    updateRelayStatus(1, null);
-                    updateRelayStatus(2, null);
-                    updateRelayStatus(3, null);
-                    updateRelayStatus(4, null);
+                    setUnknownState();
                 });
+        }
+
+        // Set all relay statuses to "Unknown"
+        function setUnknownState() {
+            for (let i = 1; i <= 4; i++) {
+                updateRelayStatus(i, null);
+            }
         }
 
         // Update the relay status indicators
@@ -157,6 +185,7 @@
 
         // Function to control relays
         function controlRelay(relayId, action) {
+            console.log(`Controlling Relay ${relayId}: ${action}`);
             const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
             let attempts = 0;
             const maxAttempts = 10;
@@ -226,6 +255,9 @@
         // Fetch the initial relay states when the page loads and refresh the states every second
         document.addEventListener('DOMContentLoaded', function() {
             fetchRelayStates();
+            setInterval(fetchRelayStates, 1000); Here is the rest of the code with the final adjustments:
+
+```html
             setInterval(fetchRelayStates, 1000);  // Automatically refresh relay states every second
         });
     </script>
