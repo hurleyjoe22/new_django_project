@@ -159,7 +159,7 @@
         function controlRelay(relayId, action) {
             const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
             let attempts = 0;
-            const maxAttempts = 10;
+            const maxAttempts = 2;
 
             // Set sync message
             syncElement.textContent = "Relay sync in progress...";
