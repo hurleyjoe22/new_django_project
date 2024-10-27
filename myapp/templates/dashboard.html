@@ -320,10 +320,10 @@
                     $('#dashboardContent').fadeOut(500, function () {
                         $('#loadingContainer').fadeIn(500);
                         $('#loadingMessage').text('Connection lost, retrying...');
+                        retryCount = 0; // Reset retry count when connection is lost
                     });
-                    retryCount = 0; // Reset retry count for reconnection attempts
                 });
-            }, 10000); // Check every 10 seconds for connection status
+            }, 10000);
         });
     </script>
 </body>
