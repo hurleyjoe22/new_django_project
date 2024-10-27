@@ -247,8 +247,17 @@
         };
 
         function displayLastUpdate(timestamp) {
+            // Parse the timestamp received from the server
             var lastUpdate = new Date(timestamp);
-            var formattedLastUpdate = lastUpdate.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+
+            // Format the timestamp as 'YYYY-MM-DD HH:MM:SS'
+            var formattedLastUpdate = lastUpdate.getFullYear() + '-' +
+                String(lastUpdate.getMonth() + 1).padStart(2, '0') + '-' +
+                String(lastUpdate.getDate()).padStart(2, '0') + ' ' +
+                String(lastUpdate.getHours()).padStart(2, '0') + ':' +
+                String(lastUpdate.getMinutes()).padStart(2, '0') + ':' +
+                String(lastUpdate.getSeconds()).padStart(2, '0');
+
             $('#lastUpdatedElement').text('Last Updated: ' + formattedLastUpdate);
         }
 
