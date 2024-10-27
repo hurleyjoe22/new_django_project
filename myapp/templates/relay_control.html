@@ -35,6 +35,9 @@
         .relay-off {
             color: red;
         }
+        .relay-unknown {
+            color: orange;
+        }
 
         /* Sync status styles */
         .sync-status {
@@ -61,42 +64,42 @@
 
     <!-- Relay 1 Control -->
     <div class="relay-control">
-        <h3>Relay 1 <span id="relay1Status" class="relay-status relay-off">Off</span></h3>
+        <h3>Relay 1 <span id="relay1Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
             <button onclick="controlRelay(1, 'on')">Turn On</button>
             <button onclick="controlRelay(1, 'off')">Turn Off</button>
         </div>
-        <div id="relay1SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
+        <div id="relay1SyncStatus" class="sync-status"></div>
     </div>
 
     <!-- Relay 2 Control -->
     <div class="relay-control">
-        <h3>Relay 2 <span id="relay2Status" class="relay-status relay-off">Off</span></h3>
+        <h3>Relay 2 <span id="relay2Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
             <button onclick="controlRelay(2, 'on')">Turn On</button>
             <button onclick="controlRelay(2, 'off')">Turn Off</button>
         </div>
-        <div id="relay2SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
+        <div id="relay2SyncStatus" class="sync-status"></div>
     </div>
 
     <!-- Relay 3 Control -->
     <div class="relay-control">
-        <h3>Relay 3 <span id="relay3Status" class="relay-status relay-off">Off</span></h3>
+        <h3>Relay 3 <span id="relay3Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
             <button onclick="controlRelay(3, 'on')">Turn On</button>
             <button onclick="controlRelay(3, 'off')">Turn Off</button>
         </div>
-        <div id="relay3SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
+        <div id="relay3SyncStatus" class="sync-status"></div>
     </div>
 
     <!-- Relay 4 Control -->
     <div class="relay-control">
-        <h3>Relay 4 <span id="relay4Status" class="relay-status relay-off">Off</span></h3>
+        <h3>Relay 4 <span id="relay4Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
             <button onclick="controlRelay(4, 'on')">Turn On</button>
             <button onclick="controlRelay(4, 'off')">Turn Off</button>
         </div>
-        <div id="relay4SyncStatus" class="sync-status"></div> <!-- Placeholder for the sync message -->
+        <div id="relay4SyncStatus" class="sync-status"></div>
     </div>
 
     <!-- Last Updated Container -->
@@ -116,7 +119,14 @@
                     updateRelayStatus(4, data.relay4);
                     updateLastUpdated(); // Update the last updated time
                 })
-                .catch(error => console.error('Error fetching relay states:', error));
+                .catch(error => {
+                    console.error('Error fetching relay states:', error);
+                    // Set all relays to 'Unknown' if there's an error
+                    updateRelayStatus(1, null);
+                    updateRelayStatus(2, null);
+                    updateRelayStatus(3, null);
+                    updateRelayStatus(4, null);
+                });
         }
 
         // Update the relay status indicators
@@ -126,12 +136,13 @@
             
             if (state === 'on') {
                 statusElement.textContent = 'On';
-                statusElement.classList.remove('relay-off');
-                statusElement.classList.add('relay-on');
-            } else {
+                statusElement.className = 'relay-status relay-on';
+            } else if (state === 'off') {
                 statusElement.textContent = 'Off';
-                statusElement.classList.remove('relay-on');
-                statusElement.classList.add('relay-off');
+                statusElement.className = 'relay-status relay-off';
+            } else {
+                statusElement.textContent = 'Unknown';
+                statusElement.className = 'relay-status relay-unknown';
             }
 
             syncElement.textContent = ""; // Clear sync message when state is confirmed
@@ -205,6 +216,7 @@
                 } else {
                     console.error(`Failed to control relay ${relayId} after ${maxAttempts} attempts.`);
                     syncElement.textContent = "Sync failed. Please try again.";
+                    updateRelayStatus(relayId, null); // Set to 'Unknown' if the sync fails
                 }
             }
 
