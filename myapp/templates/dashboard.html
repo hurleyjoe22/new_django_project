@@ -49,7 +49,34 @@
             background-color: #218838;
         }
 
+        /* Loading container styling */
+        .loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #32CD32;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-message {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
         .content {
+            display: none;
             margin-top: 120px;
             width: 90%;
             max-width: 1200px;
@@ -150,7 +177,13 @@
         <h1>Cooroibah Greens Farm Dashboard</h1>
     </header>
 
-    <div class="content">
+    <!-- Loading screen -->
+    <div class="loading-container" id="loadingContainer">
+        <div class="spinner"></div>
+        <p class="loading-message" id="loadingMessage">Syncing with device...</p>
+    </div>
+
+    <div class="content" id="dashboardContent">
         <!-- Last Updated Container -->
         <div class="last-updated-container">
             <p id="lastUpdatedElement" class="timestamp">Last Updated: </p>
@@ -234,6 +267,9 @@
 
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
+                $('#loadingContainer').fadeOut(500, function () {
+                    $('#dashboardContent').fadeIn(500);
+                });
                 displayLastUpdate(data.timestamp);
 
                 $('#temperature').text('Temperature: ' + data.temperature + ' °C');
@@ -246,17 +282,48 @@
                 updateWaterLevel('ama3', 'ama3Percentage', 'ama3Water', data.ama3_distance);
                 updateWaterLevel('ama4', 'ama4Percentage', 'ama4Water', data.ama4_distance);
 
-                // Update relay statuses
                 updateRelayStatus(1, data.relay1 === 'on');
                 updateRelayStatus(2, data.relay2 === 'on');
                 updateRelayStatus(3, data.relay3 === 'on');
                 updateRelayStatus(4, data.relay4 === 'on');
+            }).fail(function () {
+                $('#loadingMessage').text('Sync failed, retrying...');
             });
         }
 
         $(document).ready(function() {
-            updateData();  // Fetch data when the page loads
-            setInterval(updateData, 1000);  // Refresh data every 1 second
+            var retryCount = 0;
+            var maxRetries = 10;
+
+            function checkData() {
+                if (retryCount < maxRetries) {
+                    updateData();
+                    retryCount++;
+                } else {
+                    $('#loadingMessage').text('Sync failed, please check the device connection.');
+                }
+            }
+
+            // Check for new data every second
+            var interval = setInterval(checkData, 1000);
+
+            // Stop checking when data is loaded successfully
+            $('#dashboardContent').on('fadeIn', function() {
+                clearInterval(interval);
+            });
+
+            // Monitor data and revert if connection lost after loading
+            setInterval(function() {
+                $.get('/api/latest-sensor-data/', function (data) {
+                    retryCount = 0; // Reset retry count if data is successfully received
+                }).fail(function () {
+                    $('#dashboardContent').fadeOut(500, function () {
+                        $('#loadingContainer').fadeIn(500);
+                        $('#loadingMessage').text('Connection lost, retrying...');
+                    });
+                    retryCount = 0; // Reset retry count for reconnection attempts
+                });
+            }, 10000); // Check every 10 seconds for connection status
         });
     </script>
 </body>
