@@ -57,47 +57,62 @@
             font-weight: bold;
             color: #333;
         }
+
+        /* Back to Dashboard button styling */
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #32CD32;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .back-button:hover {
+            background-color: #28a745;
+        }
     </style>
 </head>
 <body>
+    <!-- Back to Dashboard Button -->
+    <a href="/dashboard/" class="back-button">Back to Dashboard</a>
+
     <h1>Relay Control</h1>
 
-    <!-- Relay 1 Control -->
+    <!-- Relay Controls -->
     <div class="relay-control">
         <h3>Relay 1 <span id="relay1Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button onclick="controlRelay(1, 'on')">Turn On</button>
-            <button onclick="controlRelay(1, 'off')">Turn Off</button>
+            <button id="relay1On" onclick="controlRelay(1, 'on')">Turn On</button>
+            <button id="relay1Off" onclick="controlRelay(1, 'off')">Turn Off</button>
         </div>
         <div id="relay1SyncStatus" class="sync-status"></div>
     </div>
 
-    <!-- Relay 2 Control -->
     <div class="relay-control">
         <h3>Relay 2 <span id="relay2Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button onclick="controlRelay(2, 'on')">Turn On</button>
-            <button onclick="controlRelay(2, 'off')">Turn Off</button>
+            <button id="relay2On" onclick="controlRelay(2, 'on')">Turn On</button>
+            <button id="relay2Off" onclick="controlRelay(2, 'off')">Turn Off</button>
         </div>
         <div id="relay2SyncStatus" class="sync-status"></div>
     </div>
 
-    <!-- Relay 3 Control -->
     <div class="relay-control">
         <h3>Relay 3 <span id="relay3Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button onclick="controlRelay(3, 'on')">Turn On</button>
-            <button onclick="controlRelay(3, 'off')">Turn Off</button>
+            <button id="relay3On" onclick="controlRelay(3, 'on')">Turn On</button>
+            <button id="relay3Off" onclick="controlRelay(3, 'off')">Turn Off</button>
         </div>
         <div id="relay3SyncStatus" class="sync-status"></div>
     </div>
 
-    <!-- Relay 4 Control -->
     <div class="relay-control">
         <h3>Relay 4 <span id="relay4Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button onclick="controlRelay(4, 'on')">Turn On</button>
-            <button onclick="controlRelay(4, 'off')">Turn Off</button>
+            <button id="relay4On" onclick="controlRelay(4, 'on')">Turn On</button>
+            <button id="relay4Off" onclick="controlRelay(4, 'off')">Turn Off</button>
         </div>
         <div id="relay4SyncStatus" class="sync-status"></div>
     </div>
@@ -108,7 +123,6 @@
     </div>
 
     <script>
-        // Fetch initial relay states and update the relay indicators
         function fetchRelayStates() {
             fetch('/api/latest-sensor-data/')
                 .then(response => response.json())
@@ -117,11 +131,10 @@
                     updateRelayStatus(2, data.relay2);
                     updateRelayStatus(3, data.relay3);
                     updateRelayStatus(4, data.relay4);
-                    updateLastUpdated(); // Update the last updated time
+                    updateLastUpdated();
                 })
                 .catch(error => {
                     console.error('Error fetching relay states:', error);
-                    // Set all relays to 'Unknown' if there's an error
                     updateRelayStatus(1, null);
                     updateRelayStatus(2, null);
                     updateRelayStatus(3, null);
@@ -129,11 +142,12 @@
                 });
         }
 
-        // Update the relay status indicators
         function updateRelayStatus(relayId, state) {
             const statusElement = document.getElementById(`relay${relayId}Status`);
             const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
-            
+            const onButton = document.getElementById(`relay${relayId}On`);
+            const offButton = document.getElementById(`relay${relayId}Off`);
+
             if (state === 'on') {
                 statusElement.textContent = 'On';
                 statusElement.className = 'relay-status relay-on';
@@ -145,23 +159,28 @@
                 statusElement.className = 'relay-status relay-unknown';
             }
 
-            syncElement.textContent = ""; // Clear sync message when state is confirmed
+            syncElement.textContent = "";
+            onButton.disabled = false;
+            offButton.disabled = false;
         }
 
-        // Update the last updated time
         function updateLastUpdated() {
             const now = new Date();
             const timeString = now.toLocaleTimeString();
             document.getElementById('lastUpdatedTime').textContent = timeString;
         }
 
-        // Function to control relays
         function controlRelay(relayId, action) {
             const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
+            const onButton = document.getElementById(`relay${relayId}On`);
+            const offButton = document.getElementById(`relay${relayId}Off`);
             let attempts = 0;
-            const maxAttempts = 2;
+            const maxAttempts = 3;
 
-            // Set sync message
+            // Disable buttons to prevent multiple clicks
+            onButton.disabled = true;
+            offButton.disabled = true;
+
             syncElement.textContent = "Relay sync in progress...";
 
             function sendRequest() {
@@ -216,17 +235,16 @@
                 } else {
                     console.error(`Failed to control relay ${relayId} after ${maxAttempts} attempts.`);
                     syncElement.textContent = "Sync failed. Please try again.";
-                    updateRelayStatus(relayId, null); // Set to 'Unknown' if the sync fails
+                    updateRelayStatus(relayId, null);
                 }
             }
 
             sendRequest();
         }
 
-        // Fetch the initial relay states when the page loads and refresh the states every second
         document.addEventListener('DOMContentLoaded', function() {
             fetchRelayStates();
-            setInterval(fetchRelayStates, 100);  // Automatically refresh relay states every second
+            setInterval(fetchRelayStates, 1000);
         });
     </script>
 </body>
