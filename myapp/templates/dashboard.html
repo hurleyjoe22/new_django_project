@@ -81,8 +81,8 @@
             margin-top: 120px;
             width: 90%;
             max-width: 1200px;
-            display: grid;
             gap: 20px;
+            display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             padding-bottom: 60px;
         }
@@ -267,11 +267,9 @@
 
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
-                if (!$('#dashboardContent').is(':visible')) {
-                    $('#loadingContainer').fadeOut(500, function () {
-                        $('#dashboardContent').fadeIn(500);
-                    });
-                }
+                $('#loadingContainer').fadeOut(500, function () {
+                    $('#dashboardContent').fadeIn(500);
+                });
                 displayLastUpdate(data.timestamp);
 
                 $('#temperature').text('Temperature: ' + data.temperature + ' °C');
@@ -312,6 +310,7 @@
             // Stop checking when data is loaded successfully
             $('#dashboardContent').on('fadeIn', function() {
                 clearInterval(interval);
+                retryCount = 0; // Reset retry count after successful load
             });
 
             // Monitor data and revert if connection lost after loading
