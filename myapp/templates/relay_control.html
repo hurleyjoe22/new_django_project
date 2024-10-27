@@ -36,17 +36,6 @@
             color: red;
         }
 
-        /* Active timer styles */
-        .active-timers {
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #555;
-        }
-        .no-active-timers {
-            color: #999;
-        }
-
         /* Last updated container styling */
         .last-updated {
             margin-top: 20px;
@@ -58,27 +47,9 @@
             font-weight: bold;
             color: #333;
         }
-
-        /* Back to Dashboard button styling */
-        .back-button {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background-color: #32CD32;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 5px;
-        }
-        .back-button:hover {
-            background-color: #28a745;
-        }
     </style>
 </head>
 <body>
-    <!-- Back to Dashboard Button -->
-    <a href="/dashboard/" class="back-button">Back to Dashboard</a>
-
     <h1>Relay Control</h1>
 
     <!-- Relay 1 Control -->
@@ -88,12 +59,6 @@
             <button onclick="controlRelay(1, 'on')">Turn On</button>
             <button onclick="controlRelay(1, 'off')">Turn Off</button>
         </div>
-        <label>Set On Time (Seconds): <input type="number" id="relay1OnTime"></label>
-        <label>Set Off Time (Seconds): <input type="number" id="relay1OffTime"></label>
-        <button onclick="submitTimers(1)">Submit Timers</button>
-
-        <!-- Active Timer Display -->
-        <div id="relay1Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
 
     <!-- Relay 2 Control -->
@@ -103,12 +68,6 @@
             <button onclick="controlRelay(2, 'on')">Turn On</button>
             <button onclick="controlRelay(2, 'off')">Turn Off</button>
         </div>
-        <label>Set On Time (Seconds): <input type="number" id="relay2OnTime"></label>
-        <label>Set Off Time (Seconds): <input type="number" id="relay2OffTime"></label>
-        <button onclick="submitTimers(2)">Submit Timers</button>
-
-        <!-- Active Timer Display -->
-        <div id="relay2Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
 
     <!-- Relay 3 Control -->
@@ -118,12 +77,6 @@
             <button onclick="controlRelay(3, 'on')">Turn On</button>
             <button onclick="controlRelay(3, 'off')">Turn Off</button>
         </div>
-        <label>Set On Time (Seconds): <input type="number" id="relay3OnTime"></label>
-        <label>Set Off Time (Seconds): <input type="number" id="relay3OffTime"></label>
-        <button onclick="submitTimers(3)">Submit Timers</button>
-
-        <!-- Active Timer Display -->
-        <div id="relay3Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
 
     <!-- Relay 4 Control -->
@@ -133,16 +86,7 @@
             <button onclick="controlRelay(4, 'on')">Turn On</button>
             <button onclick="controlRelay(4, 'off')">Turn Off</button>
         </div>
-        <label>Set On Time (Seconds): <input type="number" id="relay4OnTime"></label>
-        <label>Set Off Time (Seconds): <input type="number" id="relay4OffTime"></label>
-        <button onclick="submitTimers(4)">Submit Timers</button>
-
-        <!-- Active Timer Display -->
-        <div id="relay4Timers" class="active-timers no-active-timers">No active timers</div>
     </div>
-
-    <!-- Reset Button -->
-    <button onclick="resetTimers()">Reset All Timers</button>
 
     <!-- Last Updated Container -->
     <div class="last-updated">
@@ -150,7 +94,7 @@
     </div>
 
     <script>
-        // Fetch initial relay states and update the relay indicators and active timers
+        // Fetch initial relay states and update the relay indicators
         function fetchRelayStates() {
             fetch('/api/latest-sensor-data/')
                 .then(response => response.json())
@@ -159,10 +103,6 @@
                     updateRelayStatus(2, data.relay2);
                     updateRelayStatus(3, data.relay3);
                     updateRelayStatus(4, data.relay4);
-                    updateActiveTimers(1, data.relay1_on_time, data.relay1_off_time);
-                    updateActiveTimers(2, data.relay2_on_time, data.relay2_off_time);
-                    updateActiveTimers(3, data.relay3_on_time, data.relay3_off_time);
-                    updateActiveTimers(4, data.relay4_on_time, data.relay4_off_time);
                     updateLastUpdated(); // Update the last updated time
                 })
                 .catch(error => console.error('Error fetching relay states:', error));
@@ -182,18 +122,6 @@
             }
         }
 
-        // Update active timers for each relay
-        function updateActiveTimers(relayId, onTime, offTime) {
-            const timerElement = document.getElementById(`relay${relayId}Timers`);
-            if (onTime > 0 || offTime > 0) {
-                timerElement.classList.remove('no-active-timers');
-                timerElement.textContent = `On Timer: ${onTime} seconds, Off Timer: ${offTime} seconds`;
-            } else {
-                timerElement.classList.add('no-active-timers');
-                timerElement.textContent = 'No active timers';
-            }
-        }
-
         // Update the last updated time
         function updateLastUpdated() {
             const now = new Date();
@@ -203,17 +131,6 @@
 
         // Function to control relays
         function controlRelay(relayId, action) {
-            const onTime = document.getElementById(`relay${relayId}OnTime`).value || 0;
-            const offTime = document.getElementById(`relay${relayId}OffTime`).value || 0;
-
-            // Log the data being sent
-            console.log("Sending data to backend:", {
-                relayId: relayId,
-                action: action,
-                onTime: onTime,
-                offTime: offTime
-            });
-
             fetch('/api/control-relay/', {
                 method: 'POST',
                 headers: {
@@ -221,58 +138,20 @@
                 },
                 body: JSON.stringify({
                     relayId: relayId,
-                    action: action,
-                    onTime: onTime,
-                    offTime: offTime
+                    action: action
                 })
             }).then(response => response.json()).then(data => {
                 console.log('Relay controlled:', data);
                 fetchRelayStates();  // Update relay statuses after control
             }).catch(error => {
-        console.error('Error:', error);
-            });
-        }
-
-
-        // Function to submit timers
-        function submitTimers(relayId) {
-            const onTime = document.getElementById(`relay${relayId}OnTime`).value || 0;
-            const offTime = document.getElementById(`relay${relayId}OffTime`).value || 0;
-
-            fetch('/api/control-relay/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    relayId: relayId,
-                    action: 'setTimers',
-                    onTime: onTime,
-                    offTime: offTime
-                })
-            }).then(response => response.json()).then(data => {
-                console.log(`Timers for Relay ${relayId} set:`, data);
-            }).catch(error => {
-                console.error('Error setting timers:', error);
-            });
-        }
-
-        // Reset all timers
-        function resetTimers() {
-            fetch('/api/reset-timers/', {
-                method: 'POST',
-            }).then(response => response.json()).then(data => {
-                console.log('Timers reset:', data);
-                fetchRelayStates();  // Update relay statuses and timers after reset
-            }).catch(error => {
-                console.error('Error resetting timers:', error);
+                console.error('Error:', error);
             });
         }
 
         // Fetch the initial relay states when the page loads and refresh the states every second
         document.addEventListener('DOMContentLoaded', function() {
             fetchRelayStates();
-            setInterval(fetchRelayStates, 1000);  // Automatically refresh relay states and timers every second
+            setInterval(fetchRelayStates, 1000);  // Automatically refresh relay states every second
         });
     </script>
 </body>
