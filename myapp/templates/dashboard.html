@@ -317,26 +317,12 @@
         }
 
         $(document).ready(function() {
-            var retryCount = 0;
-            var maxRetries = 10;
-
             function checkData() {
-                if (retryCount < maxRetries) {
-                    updateData();
-                    retryCount++;
-                } else {
-                    $('#loadingMessage').text('Sync failed, please check the device connection.');
-                }
+                updateData();
             }
 
             // Check for new data every second
-            var interval = setInterval(checkData, 1000);
-
-            // Stop checking when data is loaded successfully
-            $('#dashboardContent').on('fadeIn', function() {
-                clearInterval(interval);
-                retryCount = 0; // Reset retry count after successful load
-            });
+            setInterval(checkData, 1000);
 
             // Monitor data and revert if connection lost after loading
             setInterval(function() {
