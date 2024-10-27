@@ -80,7 +80,6 @@
             margin-top: 120px;
             width: 90%;
             max-width: 1200px;
-            display: grid;
             gap: 20px;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             padding-bottom: 60px;
@@ -260,16 +259,17 @@
         }
 
         function updateRelayStatus(relayId, isOn) {
-            var statusText = isOn ? 'on' : 'off';
             var indicatorClass = isOn ? 'on' : 'off';
             $('#relay' + relayId + 'Indicator').removeClass('on off').addClass(indicatorClass);
         }
 
         function updateData() {
             $.get('/api/latest-sensor-data/', function (data) {
-                $('#loadingContainer').fadeOut(500, function () {
-                    $('#dashboardContent').fadeIn(500);
-                });
+                if (!$('#dashboardContent').is(':visible')) {
+                    $('#loadingContainer').fadeOut(500, function () {
+                        $('#dashboardContent').fadeIn(500);
+                    });
+                }
                 displayLastUpdate(data.timestamp);
 
                 $('#temperature').text('Temperature: ' + data.temperature + ' °C');
