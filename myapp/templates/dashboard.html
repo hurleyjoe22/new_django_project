@@ -249,8 +249,10 @@
         var dataTimeout;
         
         function resetDataTimeout() {
+            console.log('Resetting data timeout.');
             clearTimeout(dataTimeout);
             dataTimeout = setTimeout(function() {
+                console.log('No data received for 15 seconds. Reverting to loading screen.');
                 $('#dashboardContent').fadeOut(500, function () {
                     $('#loadingContainer').fadeIn(500);
                     $('#loadingMessage').text('Connection lost, retrying...');
@@ -259,6 +261,7 @@
         }
 
         function displayLastUpdate(timestamp) {
+            console.log('Displaying last update time:', timestamp);
             // Parse the timestamp received from the server
             var lastUpdate = new Date(timestamp);
 
@@ -274,6 +277,7 @@
         }
 
         function updateWaterLevel(tankId, percentageId, waterId, waterLevel) {
+            console.log('Updating water level for', tankId, 'with level:', waterLevel);
             var tankHeight = tankHeights[tankId];
             var percentage = (100 - (waterLevel / tankHeight) * 100).toFixed(1);
 
@@ -282,12 +286,15 @@
         }
 
         function updateRelayStatus(relayId, isOn) {
+            console.log('Updating relay', relayId, 'status to', isOn ? 'on' : 'off');
             var indicatorClass = isOn ? 'on' : 'off';
             $('#relay' + relayId + 'Indicator').removeClass('on off').addClass(indicatorClass);
         }
 
         function updateData() {
+            console.log('Attempting to update data from server.');
             $.get('/api/latest-sensor-data/', function (data) {
+                console.log('Data received:', data);
                 // Hide loading container and show dashboard
                 if ($('#loadingContainer').is(':visible')) {
                     $('#loadingContainer').fadeOut(500, function () {
@@ -314,19 +321,24 @@
                 // Reset the timeout since new data was received
                 resetDataTimeout();
             }).fail(function () {
+                console.error('Failed to fetch data from server.');
                 $('#loadingMessage').text('Sync failed, retrying...');
             });
         }
 
         $(document).ready(function() {
+            console.log('Document ready. Starting data update checks.');
             // Initial check for new data every second
             setInterval(updateData, 1000);
 
             // Monitor data timeout every 15 seconds
             setInterval(function() {
+                console.log('Checking if data timeout has occurred.');
                 $.get('/api/latest-sensor-data/', function (data) {
+                    console.log('Data received during timeout check:', data);
                     resetDataTimeout();
                 }).fail(function () {
+                    console.error('Failed to receive data during timeout check. Reverting to loading screen.');
                     $('#dashboardContent').fadeOut(500, function () {
                         $('#loadingContainer').fadeIn(500);
                         $('#loadingMessage').text('Connection lost, retrying...');
