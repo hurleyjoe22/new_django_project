@@ -57,22 +57,30 @@
             transform: translate(-50%, -50%);
             text-align: center;
             z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .spinner {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #32CD32;
+            border: 10px solid #f3f3f3;
+            border-top: 10px solid #32CD32;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
         .loading-message {
-            font-size: 18px;
+            font-size: 24px;
             font-weight: bold;
         }
 
@@ -248,10 +256,10 @@
 
         var dataTimeout;
         var lastData = null;
-        var countdown = 15;
+        var countdown = 10;
         
         function startCountdown() {
-            countdown = 15;
+            countdown = 10;
             var countdownInterval = setInterval(function() {
                 if (countdown > 0) {
                     console.log('Countdown: ' + countdown);
@@ -272,7 +280,7 @@
                     $('#loadingContainer').fadeIn(500);
                     $('#loadingMessage').text('Connection lost, retrying...');
                 });
-            }, 15000); // 15 seconds countdown
+            }, 10000); // 10 seconds countdown
         }
 
         function displayLastUpdate(timestamp) {
@@ -366,7 +374,7 @@
                         $('#loadingMessage').text('Connection lost, retrying...');
                     });
                 });
-            }, 15000);
+            }, 10000);
         });
     </script>
 </body>
