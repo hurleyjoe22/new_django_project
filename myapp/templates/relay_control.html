@@ -268,6 +268,7 @@
             const statusElement = document.getElementById(`relay${relayId}Status`);
             const onButton = document.getElementById(`relay${relayId}On`);
             const offButton = document.getElementById(`relay${relayId}Off`);
+            const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
 
             if (state === 'on') {
                 statusElement.textContent = 'On';
@@ -285,6 +286,8 @@
                 onButton.disabled = true;
                 offButton.disabled = true;
             }
+            // Clear sync status after updating
+            syncElement.textContent = "";
         }
 
         function updateLastUpdated(timestamp) {
@@ -317,6 +320,10 @@
             }).catch(error => {
                 console.error('Error:', error);
                 syncElement.textContent = "Sync failed. Please try again.";
+            }).finally(() => {
+                setTimeout(() => {
+                    syncElement.textContent = "";
+                }, 3000); // Clear sync message after 3 seconds
             });
         }
 
