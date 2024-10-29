@@ -93,6 +93,8 @@
             padding: 15px;
             border-radius: 8px;
             background-color: #f9f9f9;
+            width: 90%;
+            max-width: 500px;
         }
         label {
             display: block;
@@ -134,6 +136,8 @@
             font-size: 16px;
             font-weight: bold;
             color: #333;
+            width: 90%;
+            max-width: 500px;
         }
     </style>
 </head>
@@ -147,48 +151,47 @@
     <!-- Back to Dashboard Button -->
     <a href="/dashboard/" class="back-button">Back to Dashboard</a>
 
+    <div class="last-updated" id="lastUpdatedContainer">
+        Last Updated: <span id="lastUpdatedTime">Not yet updated</span>
+    </div>
+
     <h1>Relay Control</h1>
 
     <!-- Relay Controls -->
-    <div class="relay-control" id="relayControls" style="display: none;">
+    <div class="relay-control" id="relay1Control" style="display: none;">
         <h3>Relay 1 <span id="relay1Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button id="relay1On" onclick="controlRelay(1, 'on')">Turn On</button>
-            <button id="relay1Off" onclick="controlRelay(1, 'off')">Turn Off</button>
+            <button id="relay1On" onclick="controlRelay(1, 'on')" disabled>Turn On</button>
+            <button id="relay1Off" onclick="controlRelay(1, 'off')" disabled>Turn Off</button>
         </div>
         <div id="relay1SyncStatus" class="sync-status"></div>
     </div>
 
-    <div class="relay-control">
+    <div class="relay-control" id="relay2Control" style="display: none;">
         <h3>Relay 2 <span id="relay2Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button id="relay2On" onclick="controlRelay(2, 'on')">Turn On</button>
-            <button id="relay2Off" onclick="controlRelay(2, 'off')">Turn Off</button>
+            <button id="relay2On" onclick="controlRelay(2, 'on')" disabled>Turn On</button>
+            <button id="relay2Off" onclick="controlRelay(2, 'off')" disabled>Turn Off</button>
         </div>
         <div id="relay2SyncStatus" class="sync-status"></div>
     </div>
 
-    <div class="relay-control">
+    <div class="relay-control" id="relay3Control" style="display: none;">
         <h3>Relay 3 <span id="relay3Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button id="relay3On" onclick="controlRelay(3, 'on')">Turn On</button>
-            <button id="relay3Off" onclick="controlRelay(3, 'off')">Turn Off</button>
+            <button id="relay3On" onclick="controlRelay(3, 'on')" disabled>Turn On</button>
+            <button id="relay3Off" onclick="controlRelay(3, 'off')" disabled>Turn Off</button>
         </div>
         <div id="relay3SyncStatus" class="sync-status"></div>
     </div>
 
-    <div class="relay-control">
+    <div class="relay-control" id="relay4Control" style="display: none;">
         <h3>Relay 4 <span id="relay4Status" class="relay-status relay-unknown">Unknown</span></h3>
         <div class="buttons">
-            <button id="relay4On" onclick="controlRelay(4, 'on')">Turn On</button>
-            <button id="relay4Off" onclick="controlRelay(4, 'off')">Turn Off</button>
+            <button id="relay4On" onclick="controlRelay(4, 'on')" disabled>Turn On</button>
+            <button id="relay4Off" onclick="controlRelay(4, 'off')" disabled>Turn Off</button>
         </div>
         <div id="relay4SyncStatus" class="sync-status"></div>
-    </div>
-
-    <!-- Last Updated Container -->
-    <div class="last-updated" id="lastUpdatedContainer">
-        Last Updated: <span id="lastUpdatedTime">Not yet updated</span>
     </div>
 
     <script>
@@ -202,9 +205,12 @@
             startCountdown();
             dataTimeout = setTimeout(function() {
                 console.log('No data received for 10 seconds. Reverting to loading screen.');
-                document.getElementById('relayControls').style.display = 'none';
+                document.querySelectorAll('.relay-control').forEach(control => {
+                    control.style.display = 'none';
+                });
                 document.getElementById('loadingContainer').style.display = 'block';
                 document.getElementById('loadingMessage').textContent = 'Connection lost, retrying...';
+                setUnknownState();
             }, 10000);
         }
 
@@ -218,6 +224,15 @@
                     clearInterval(countdownInterval);
                 }
             }, 1000);
+        }
+
+        function setUnknownState() {
+            console.log('Setting relay statuses to unknown.');
+            for (let i = 1; i <= 4; i++) {
+                updateRelayStatus(i, 'unknown');
+                document.getElementById(`relay${i}On`).disabled = true;
+                document.getElementById(`relay${i}Off`).disabled = true;
+            }
         }
 
         function fetchRelayStates() {
@@ -238,7 +253,9 @@
                     updateLastUpdated(data.timestamp);
 
                     document.getElementById('loadingContainer').style.display = 'none';
-                    document.getElementById('relayControls').style.display = 'block';
+                    document.querySelectorAll('.relay-control').forEach(control => {
+                        control.style.display = 'block';
+                    });
                     resetDataTimeout();
                 })
                 .catch(error => {
@@ -249,20 +266,25 @@
 
         function updateRelayStatus(relayId, state) {
             const statusElement = document.getElementById(`relay${relayId}Status`);
-            const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
+            const onButton = document.getElementById(`relay${relayId}On`);
+            const offButton = document.getElementById(`relay${relayId}Off`);
 
             if (state === 'on') {
                 statusElement.textContent = 'On';
                 statusElement.className = 'relay-status relay-on';
+                onButton.disabled = false;
+                offButton.disabled = false;
             } else if (state === 'off') {
                 statusElement.textContent = 'Off';
                 statusElement.className = 'relay-status relay-off';
+                onButton.disabled = false;
+                offButton.disabled = false;
             } else {
                 statusElement.textContent = 'Unknown';
                 statusElement.className = 'relay-status relay-unknown';
+                onButton.disabled = true;
+                offButton.disabled = true;
             }
-
-            syncElement.textContent = "";
         }
 
         function updateLastUpdated(timestamp) {
