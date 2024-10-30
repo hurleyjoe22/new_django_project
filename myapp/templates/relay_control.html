@@ -343,11 +343,12 @@
             }).then(response => response.json()).then(data => {
                 setTimeout(() => {
                     fetchRelayStates();
-                    if (data.message) {
+                    // Verify if the state actually changed
+                    if (lastData && lastData[`relay${relayId}`] === action) {
                         console.log(`Relay ${relayId} controlled successfully: ${action}`);
                         showFloatingBar('Relay ' + relayId + ' turned ' + action + ' successfully.', 'success');
                     } else {
-                        console.error('API Error:', data.error);
+                        console.error('Failed to change relay state to the expected value.');
                         syncElement.textContent = "Sync failed. Please try again.";
                         showFloatingBar('Failed to turn ' + action + ' relay ' + relayId + '. Please try again.', 'error');
                     }
