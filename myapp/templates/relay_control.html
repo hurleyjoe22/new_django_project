@@ -318,7 +318,9 @@
             }).then(response => response.json()).then(data => {
                 if (data.message) {
                     console.log(`Relay ${relayId} controlled successfully: ${action}`);
-                    fetchRelayStates();
+                    setTimeout(() => {
+                        fetchRelayStates();
+                    }, 3000); // Wait for 3 seconds to confirm relay state change
                 } else {
                     console.error('API Error:', data.error);
                     syncElement.textContent = "Sync failed. Please try again.";
