@@ -297,8 +297,14 @@
 
         function controlRelay(relayId, action) {
             const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
+            const onButton = document.getElementById(`relay${relayId}On`);
+            const offButton = document.getElementById(`relay${relayId}Off`);
             console.log(`Attempting to control relay ${relayId}: ${action}`);
             syncElement.textContent = "Relay sync in progress...";
+
+            // Disable buttons during sync process
+            onButton.disabled = true;
+            offButton.disabled = true;
 
             fetch('/api/control-relay/', {
                 method: 'POST',
@@ -316,10 +322,16 @@
                 } else {
                     console.error('API Error:', data.error);
                     syncElement.textContent = "Sync failed. Please try again.";
+                    // Re-enable buttons on failure
+                    onButton.disabled = false;
+                    offButton.disabled = false;
                 }
             }).catch(error => {
                 console.error('Error:', error);
                 syncElement.textContent = "Sync failed. Please try again.";
+                // Re-enable buttons on failure
+                onButton.disabled = false;
+                offButton.disabled = false;
             }).finally(() => {
                 setTimeout(() => {
                     syncElement.textContent = "";
