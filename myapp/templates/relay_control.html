@@ -341,18 +341,17 @@
                     action: action
                 })
             }).then(response => response.json()).then(data => {
-                setTimeout(() => {
-                    fetchRelayStates();
-                    // Verify if the state actually changed
-                    if (lastData && lastData[`relay${relayId}`] === action) {
-                        console.log(`Relay ${relayId} controlled successfully: ${action}`);
-                        showFloatingBar('Relay ' + relayId + ' turned ' + action + ' successfully.', 'success');
-                    } else {
-                        console.error('Failed to change relay state to the expected value.');
-                        syncElement.textContent = "Sync failed. Please try again.";
-                        showFloatingBar('Failed to turn ' + action + ' relay ' + relayId + '. Please try again.', 'error');
-                    }
-                }, 3000); // Wait for 3 seconds to confirm relay state change
+                if (data.message) {
+                    console.log(`Relay ${relayId} controlled successfully: ${action}`);
+                    setTimeout(() => {
+                        fetchRelayStates();
+                        verifyRelayStateChange(relayId, action);
+                    }, 1000); // Wait for 1 second to confirm relay state change
+                } else {
+                    console.error('API Error:', data.error);
+                    syncElement.textContent = "Sync failed. Please try again.";
+                    showFloatingBar('Failed to turn ' + action + ' relay ' + relayId + '. Please try again.', 'error');
+                }
             }).catch(error => {
                 console.error('Error:', error);
                 syncElement.textContent = "Sync failed. Please try again.";
@@ -365,6 +364,18 @@
                     syncElement.textContent = "";
                 }, 3000); // Clear sync message after 3 seconds
             });
+        }
+
+        function verifyRelayStateChange(relayId, expectedState) {
+            setTimeout(() => {
+                if (lastData && lastData[`relay${relayId}`] === expectedState) {
+                    showFloatingBar('Relay ' + relayId + ' turned ' + expectedState + ' successfully.', 'success');
+                } else {
+                    showFloatingBar('Failed to turn ' + expectedState + ' relay ' + relayId + '. Please try again.', 'error');
+                    document.getElementById(`relay${relayId}On`).disabled = false;
+                    document.getElementById(`relay${relayId}Off`).disabled = false;
+                }
+            }, 2000); // Verify after 2 seconds
         }
 
         function showFloatingBar(message, type) {
