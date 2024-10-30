@@ -323,6 +323,7 @@
             const syncElement = document.getElementById(`relay${relayId}SyncStatus`);
             const onButton = document.getElementById(`relay${relayId}On`);
             const offButton = document.getElementById(`relay${relayId}Off`);
+            const floatingBar = document.getElementById('floatingBar');
             console.log(`Attempting to control relay ${relayId}: ${action}`);
             syncElement.textContent = "Relay sync in progress...";
 
@@ -340,27 +341,24 @@
                     action: action
                 })
             }).then(response => response.json()).then(data => {
-                if (data.message) {
-                    console.log(`Relay ${relayId} controlled successfully: ${action}`);
-                    setTimeout(() => {
-                        fetchRelayStates();
+                setTimeout(() => {
+                    fetchRelayStates();
+                    if (data.message) {
+                        console.log(`Relay ${relayId} controlled successfully: ${action}`);
                         showFloatingBar('Relay ' + relayId + ' turned ' + action + ' successfully.', 'success');
-                    }, 3000); // Wait for 3 seconds to confirm relay state change
-                } else {
-                    console.error('API Error:', data.error);
-                    syncElement.textContent = "Sync failed. Please try again.";
-                    showFloatingBar('Failed to turn relay ' + relayId + ' ' + action + '. Please try again.', 'error');
-                    // Re-enable buttons on failure
-                    onButton.disabled = false;
-                    offButton.disabled = false;
-                }
+                    } else {
+                        console.error('API Error:', data.error);
+                        syncElement.textContent = "Sync failed. Please try again.";
+                        showFloatingBar('Failed to turn ' + action + ' relay ' + relayId + '. Please try again.', 'error');
+                    }
+                }, 3000); // Wait for 3 seconds to confirm relay state change
             }).catch(error => {
                 console.error('Error:', error);
                 syncElement.textContent = "Sync failed. Please try again.";
-                showFloatingBar('Failed to turn relay ' + relayId + ' ' + action + '. Please try again.', 'error');
                 // Re-enable buttons on failure
                 onButton.disabled = false;
                 offButton.disabled = false;
+                showFloatingBar('Failed to turn ' + action + ' relay ' + relayId + '. Please try again.', 'error');
             }).finally(() => {
                 setTimeout(() => {
                     syncElement.textContent = "";
@@ -375,7 +373,7 @@
             floatingBar.style.display = 'block';
             setTimeout(() => {
                 floatingBar.style.display = 'none';
-            }, 4000); // Show the message for 4 seconds
+            }, 5000); // Show the floating bar for 5 seconds
         }
 
         document.addEventListener('DOMContentLoaded', function() {
