@@ -129,5 +129,7 @@ SECURE_SSL_REDIRECT = False  # Redirect all HTTP to HTTPS in production
 CSRF_COOKIE_SECURE = False  # Set to True in production
 SESSION_COOKIE_SECURE = False  # Set to True in production
 
+
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
