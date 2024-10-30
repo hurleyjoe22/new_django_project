@@ -139,6 +139,27 @@
             width: 90%;
             max-width: 500px;
         }
+
+        /* Floating bar styling for notifications */
+        .floating-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+            z-index: 3000;
+        }
+        .floating-bar.success {
+            background-color: #28a745;
+        }
+        .floating-bar.error {
+            background-color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -193,6 +214,9 @@
         </div>
         <div id="relay4SyncStatus" class="sync-status"></div>
     </div>
+
+    <!-- Floating Notification Bar -->
+    <div id="floatingBar" class="floating-bar"></div>
 
     <script>
         let dataTimeout;
@@ -320,10 +344,12 @@
                     console.log(`Relay ${relayId} controlled successfully: ${action}`);
                     setTimeout(() => {
                         fetchRelayStates();
+                        showFloatingBar('Relay ' + relayId + ' turned ' + action + ' successfully.', 'success');
                     }, 3000); // Wait for 3 seconds to confirm relay state change
                 } else {
                     console.error('API Error:', data.error);
                     syncElement.textContent = "Sync failed. Please try again.";
+                    showFloatingBar('Failed to turn relay ' + relayId + ' ' + action + '. Please try again.', 'error');
                     // Re-enable buttons on failure
                     onButton.disabled = false;
                     offButton.disabled = false;
@@ -331,6 +357,7 @@
             }).catch(error => {
                 console.error('Error:', error);
                 syncElement.textContent = "Sync failed. Please try again.";
+                showFloatingBar('Failed to turn relay ' + relayId + ' ' + action + '. Please try again.', 'error');
                 // Re-enable buttons on failure
                 onButton.disabled = false;
                 offButton.disabled = false;
@@ -339,6 +366,16 @@
                     syncElement.textContent = "";
                 }, 3000); // Clear sync message after 3 seconds
             });
+        }
+
+        function showFloatingBar(message, type) {
+            const floatingBar = document.getElementById('floatingBar');
+            floatingBar.textContent = message;
+            floatingBar.className = `floating-bar ${type}`;
+            floatingBar.style.display = 'block';
+            setTimeout(() => {
+                floatingBar.style.display = 'none';
+            }, 4000); // Show the message for 4 seconds
         }
 
         document.addEventListener('DOMContentLoaded', function() {
