@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import SensorData
+from .models import SensorData, RelayTimer
 from django.utils import timezone
 import logging
 
@@ -217,3 +217,34 @@ def set_relay_timer(request):
 
     logger.error(f"Invalid request method: {request.method}")
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+# API view to confirm timer setting from Raspberry Pi
+@csrf_exempt
+def confirm_timer_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            relay_id = data.get('relayId')
+            on_time = data.get('onTime')
+            off_time = data.get('offTime')
+            status = data.get('status')
+
+            # Update the relay timer information based on the received confirmation
+            if relay_id and on_time is not None and off_time is not None and status:
+                # Optionally, update the database record to reflect the confirmation
+                relay_timer, created = RelayTimer.objects.get_or_create(relay_id=relay_id)
+                relay_timer.on_time = on_time
+                relay_timer.off_time = off_time
+                relay_timer.status = status
+                relay_timer.confirmed_at = timezone.now()
+                relay_timer.save()
+
+                return JsonResponse({"message": "Timer confirmation received successfully."}, status=200)
+            else:
+                return JsonResponse({"error": "Invalid data received."}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format."}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    else:
+        return JsonResponse({"error": "Invalid request method."}, status=405)

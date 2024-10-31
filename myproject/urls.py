@@ -11,4 +11,5 @@ urlpatterns = [
     path('relay-control/', views.relay_control_view, name='relay_control'),  # URL for relay control page
     path('api/control-relay/', views.control_relay, name='control_relay'),  # API route for controlling relays
     path('api/set-timer/', views.set_relay_timer, name='set_relay_timer'),  # API route for setting relay timers
+    path('api/confirm-timer/', views.confirm_timer_setting, name='confirm_timer_setting'),  # API route for confirming relay timer settings
 ]
