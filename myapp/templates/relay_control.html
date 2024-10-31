@@ -148,9 +148,9 @@
             transform: translateX(-50%);
             background-color: #333;
             color: white;
-            padding: 20px 40px; /* Increase padding for a larger size */
+            padding: 20px 40px;
             border-radius: 8px;
-            font-size: 28px; /* Increase font size to make it more visible */
+            font-size: 28px;
             font-weight: bold;
             display: none;
             z-index: 3000;
@@ -186,6 +186,14 @@
             <button id="relay1On" onclick="controlRelay(1, 'on')" disabled>Turn On</button>
             <button id="relay1Off" onclick="controlRelay(1, 'off')" disabled>Turn Off</button>
         </div>
+        <div class="timer-controls">
+            <label for="relay1OnTime">On Time (seconds):</label>
+            <input type="number" id="relay1OnTime" min="0" placeholder="Enter on time">
+            <label for="relay1OffTime">Off Time (seconds):</label>
+            <input type="number" id="relay1OffTime" min="0" placeholder="Enter off time">
+            <button onclick="setRelayTimer(1)">Set Timer</button>
+            <button onclick="clearRelayTimer(1)">Clear Timer</button>
+        </div>
         <div id="relay1SyncStatus" class="sync-status"></div>
     </div>
 
@@ -194,6 +202,14 @@
         <div class="buttons">
             <button id="relay2On" onclick="controlRelay(2, 'on')" disabled>Turn On</button>
             <button id="relay2Off" onclick="controlRelay(2, 'off')" disabled>Turn Off</button>
+        </div>
+        <div class="timer-controls">
+            <label for="relay2OnTime">On Time (seconds):</label>
+            <input type="number" id="relay2OnTime" min="0" placeholder="Enter on time">
+            <label for="relay2OffTime">Off Time (seconds):</label>
+            <input type="number" id="relay2OffTime" min="0" placeholder="Enter off time">
+            <button onclick="setRelayTimer(2)">Set Timer</button>
+            <button onclick="clearRelayTimer(2)">Clear Timer</button>
         </div>
         <div id="relay2SyncStatus" class="sync-status"></div>
     </div>
@@ -204,6 +220,14 @@
             <button id="relay3On" onclick="controlRelay(3, 'on')" disabled>Turn On</button>
             <button id="relay3Off" onclick="controlRelay(3, 'off')" disabled>Turn Off</button>
         </div>
+        <div class="timer-controls">
+            <label for="relay3OnTime">On Time (seconds):</label>
+            <input type="number" id="relay3OnTime" min="0" placeholder="Enter on time">
+            <label for="relay3OffTime">Off Time (seconds):</label>
+            <input type="number" id="relay3OffTime" min="0" placeholder="Enter off time">
+            <button onclick="setRelayTimer(3)">Set Timer</button>
+            <button onclick="clearRelayTimer(3)">Clear Timer</button>
+        </div>
         <div id="relay3SyncStatus" class="sync-status"></div>
     </div>
 
@@ -212,6 +236,14 @@
         <div class="buttons">
             <button id="relay4On" onclick="controlRelay(4, 'on')" disabled>Turn On</button>
             <button id="relay4Off" onclick="controlRelay(4, 'off')" disabled>Turn Off</button>
+        </div>
+        <div class="timer-controls">
+            <label for="relay4OnTime">On Time (seconds):</label>
+            <input type="number" id="relay4OnTime" min="0" placeholder="Enter on time">
+            <label for="relay4OffTime">Off Time (seconds):</label>
+            <input type="number" id="relay4OffTime" min="0" placeholder="Enter off time">
+            <button onclick="setRelayTimer(4)">Set Timer</button>
+            <button onclick="clearRelayTimer(4)">Clear Timer</button>
         </div>
         <div id="relay4SyncStatus" class="sync-status"></div>
     </div>
@@ -387,6 +419,58 @@
             setTimeout(() => {
                 floatingBar.style.display = 'none';
             }, 10000); // Show the floating bar for 5 seconds
+        }
+
+        function setRelayTimer(relayId) {
+            const onTime = document.getElementById(`relay${relayId}OnTime`).value;
+            const offTime = document.getElementById(`relay${relayId}OffTime`).value;
+            console.log(`Setting timer for relay ${relayId}: On time ${onTime}s, Off time ${offTime}s`);
+
+            fetch('/api/set-timer/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    relayId: relayId,
+                    onTime: onTime,
+                    offTime: offTime
+                })
+            }).then(response => response.json()).then(data => {
+                if (data.message) {
+                    showFloatingBar(`Timer set for relay ${relayId} successfully.`, 'success');
+                } else {
+                    console.error('API Error:', data.error);
+                    showFloatingBar('Failed to set timer for relay ' + relayId + '. Please try again.', 'error');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                showFloatingBar('Failed to set timer for relay ' + relayId + '. Please try again.', 'error');
+            });
+        }
+
+        function clearRelayTimer(relayId) {
+            console.log(`Clearing timer for relay ${relayId}`);
+
+            fetch('/api/clear-timer/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    relayId: relayId
+                })
+            }).then(response => response.json()).then(data => {
+                if (data.message) {
+                    showFloatingBar(`Timer cleared for relay ${relayId} successfully.`, 'success');
+                } else {
+                    console.error('API Error:', data.error);
+                    showFloatingBar('Failed to clear timer for relay ' + relayId + '. Please try again.', 'error');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                showFloatingBar('Failed to clear timer for relay ' + relayId + '. Please try again.', 'error');
+            });
         }
 
         document.addEventListener('DOMContentLoaded', function() {

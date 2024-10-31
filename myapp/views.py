@@ -166,3 +166,30 @@ def upload_sensor_data(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+# API view to handle setting relay timers
+@csrf_exempt
+def set_relay_timer(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            relay_id = data.get('relayId')
+            on_time = data.get('onTime')
+            off_time = data.get('offTime')
+
+            # Validate the presence of required fields
+            if relay_id is None or on_time is None or off_time is None:
+                return JsonResponse({'error': 'Missing or invalid fields'}, status=400)
+
+            # Logic to store or handle the timer settings (e.g., saving to a database or sending to the Raspberry Pi)
+            logger.info(f"Timer set for relay {relay_id}: ON for {on_time} seconds, OFF for {off_time} seconds")
+
+            return JsonResponse({'message': f'Timer set for relay {relay_id} successfully'}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            logger.error(f"Error setting relay timer: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)

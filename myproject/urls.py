@@ -10,5 +10,5 @@ urlpatterns = [
     path('api/upload-sensor-data/', views.upload_sensor_data, name='upload_sensor_data'),  # API route for uploading sensor data
     path('relay-control/', views.relay_control_view, name='relay_control'),  # URL for relay control page
     path('api/control-relay/', views.control_relay, name='control_relay'),  # API route for controlling relays
-    # path('api/reset-timers/', views.reset_timers, name='reset_timers'),  # Commented out or removed as it's no longer used
+    path('api/set-timer/', views.set_relay_timer, name='set_relay_timer'),  # API route for setting relay timers
 ]

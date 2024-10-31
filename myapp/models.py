@@ -20,5 +20,15 @@ class SensorData(models.Model):
     # The timestamp for the sensor data
     timestamp = models.DateTimeField()
 
+    # Timer fields for relays
+    relay1_on_time = models.IntegerField(null=True, blank=True)
+    relay1_off_time = models.IntegerField(null=True, blank=True)
+    relay2_on_time = models.IntegerField(null=True, blank=True)
+    relay2_off_time = models.IntegerField(null=True, blank=True)
+    relay3_on_time = models.IntegerField(null=True, blank=True)
+    relay3_off_time = models.IntegerField(null=True, blank=True)
+    relay4_on_time = models.IntegerField(null=True, blank=True)
+    relay4_off_time = models.IntegerField(null=True, blank=True)
+
     def __str__(self):
         return f"Sensor Data at {self.timestamp}"
