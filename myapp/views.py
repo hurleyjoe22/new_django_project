@@ -189,6 +189,23 @@ def set_relay_timer(request):
             # Log timer request details
             logger.info(f"Timer set for relay {relay_id}: ON for {on_time} seconds, OFF for {off_time} seconds")
 
+            # Store the timer setting in the database
+            latest_data = SensorData.objects.order_by('-timestamp').first()
+            if latest_data:
+                # Update the corresponding relay state to reflect a timer is active (could be a separate flag or state)
+                if relay_id == 1:
+                    latest_data.relay1 = f"timer-{on_time}-{off_time}"
+                elif relay_id == 2:
+                    latest_data.relay2 = f"timer-{on_time}-{off_time}"
+                elif relay_id == 3:
+                    latest_data.relay3 = f"timer-{on_time}-{off_time}"
+                elif relay_id == 4:
+                    latest_data.relay4 = f"timer-{on_time}-{off_time}"
+
+                # Save the updated data
+                latest_data.save()
+                logger.info(f"Relay {relay_id} timer updated in the database.")
+
             return JsonResponse({'message': f'Timer set for relay {relay_id} successfully'}, status=200)
 
         except json.JSONDecodeError:
